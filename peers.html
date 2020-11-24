@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>SpaceTrain - Peers Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  </head>
+  <body>
+    <div id="peers"></div>
+    <script>
+      const dom = document.getElementById('peers');
+      const rooms = ['1', '2', '3', '4'];
+      const sound = new Audio();
+      sound.src = 'sounds/ding.ogg';
+      sound.volume = 0.5;
+      let count = Infinity;
+      const update = () => {
+        fetch('https://rooms.trolltower.app/peers')
+        .then((res) => res.json())
+        .then((peers) => {
+          while (dom.firstChild) {
+            dom.removeChild(dom.firstChild);
+          }
+          const previous = count;
+          count = rooms.reduce((total, room) => {
+            const div = document.createElement('div');
+            div.className = `room${peers[room] ? ' active' : ''}`;
+            const id = document.createElement('div');
+            id.innerText = `Server: 0${room}`;
+            div.appendChild(id);
+            const count = document.createElement('div');
+            count.className = 'count';
+            count.innerText = peers[room] || 0;
+            div.appendChild(count);
+            dom.appendChild(div);
+            return total + (peers[room] || 0);
+          }, 0);
+          if (count > previous) {
+            sound.play();
+          }
+        })
+      };
+      setInterval(update, 10000);
+      update();
+    </script>
+    <style>
+      body {
+        background: linear-gradient(#444, #222);
+        margin: 0;
+        font-family: monospace;
+        overflow-y: scroll;
+        color: #fff;
+      }
+      #peers {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-width: 400px;
+        margin: 0 auto;
+        height: 100vh;
+      }
+      .room {
+        display: flex;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px dashed #111;
+      }
+      .room:first-child {
+        border-top: 1px dashed #111;
+      }
+      .room.active {
+        background: #393;
+      }
+      .count {
+        margin-left: auto;
+      }
+    </style>
+  </body>
+</html>
