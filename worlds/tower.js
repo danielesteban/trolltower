@@ -89,6 +89,7 @@ class Tower extends ElevatorWorld {
       rocket.speed += delta * 5;
       rocket.position.y += step;
       if (rocket.movePlayer) {
+        delete player.destination;
         player.move(vector.set(0, step, 0));
       }
       rocket.tick -= delta;
