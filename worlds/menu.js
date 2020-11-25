@@ -50,7 +50,7 @@ class Menu extends Group {
     this.updatePeersInterval = setInterval(updatePeers, 10000);
     updatePeers();
 
-    const origin = new Vector3(0, 1, 0);
+    const origin = new Vector3(0, 0.5, 0);
     if (offset) {
       const elevator = this.elevators[room - 1];
       elevator.localToWorld(origin.copy(offset.position));
