@@ -62,7 +62,7 @@ class Player extends Group {
       controller.pointer = new Pointer();
       controller.add(controller.pointer);
       controller.raycaster = new Raycaster();
-      controller.raycaster.far = 4;
+      controller.raycaster.far = 8;
       controller.worldspace = {
         lastPosition: new Vector3(),
         movement: new Vector3(),

@@ -19,7 +19,7 @@ export default function CurveCast({
 }) {
   const { far: distance, ray: { direction, origin } } = raycaster;
   const points = [];
-  let stride = 0.5;
+  let stride = 0.125;
   let hit = false;
   restore.direction.copy(direction);
   restore.origin.copy(origin);
@@ -34,7 +34,7 @@ export default function CurveCast({
       .addScaledVector(gravity, (stride * stride) * 0.05);
     direction
       .subVectors(next, origin);
-    raycaster.far = i === maxSteps - 1 ? distance : direction.length();
+    raycaster.far = direction.length();
     direction.normalize();
     hit = raycaster.intersectObjects(intersects)[0] || false;
     if (hit) {
