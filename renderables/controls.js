@@ -1,6 +1,5 @@
 import {
   CanvasTexture,
-  DoubleSide,
   Mesh,
   MeshBasicMaterial,
   PlaneBufferGeometry,
