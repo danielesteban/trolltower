@@ -235,13 +235,6 @@ class Tower extends Group {
       models.load('models/tower.glb')
         .then((model) => {
           model.scale.setScalar(0.5);
-          model.traverse((child) => {
-            if (child.isMesh && child.material.transparent) {
-              child.material.alphaTest = 1;
-              child.material.depthWrite = true;
-              child.material.transparent = false;
-            }
-          });
           this.add(model);
         }),
     ])
