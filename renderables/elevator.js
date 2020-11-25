@@ -60,7 +60,7 @@ class Elevator extends Group {
       });
   }
 
-  animate(delta) {
+  animate({ delta }) {
     const { doors, isOpen, sound } = this;
     if (!doors) {
       return;

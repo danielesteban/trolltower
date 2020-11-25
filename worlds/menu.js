@@ -92,7 +92,7 @@ class Menu extends Group {
     } = this;
     peers.animate(animation);
     elevators.forEach((elevator) => {
-      elevator.animate(animation.delta);
+      elevator.animate(animation);
       if (
         elevator.isOpen
         && elevator.containsPoint(player.head.position)

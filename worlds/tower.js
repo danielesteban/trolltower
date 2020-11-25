@@ -1,51 +1,30 @@
 import {
   Box3,
   Color,
-  Euler,
   FogExp2,
   Group,
   Matrix4,
   Vector3,
 } from '../core/three.js';
-import ElevatorWorld from '../core/elevatorWorld.js';
 import Peers from '../core/peers.js';
 import Birds from '../renderables/birds.js';
 import Button from '../renderables/button.js';
 import Clouds from '../renderables/clouds.js';
+import Elevator from '../renderables/elevator.js';
 import Explosion from '../renderables/explosion.js';
 import Ground from '../renderables/ground.js';
 import Ocean from '../renderables/ocean.js';
 import Spheres from '../renderables/spheres.js';
 
-class Tower extends ElevatorWorld {
+class Tower extends Group {
   constructor(scene, { offset, room }) {
-    const boats = [
-      new Vector3(-17.5, 3.5, -21),
-      new Vector3(21, 3.5, -21),
-    ].map((position) => {
-      const boat = new Group();
-      boat.position.copy(position);
-      boat.rotation.order = 'YXZ';
-      boat.lookAt(0, position.y, 0);
-      boat.rotateY(Math.PI);
-      boat.updateMatrixWorld();
-      return boat;
-    });
-    const boatModelOffset = new Vector3(-4, -3, 0);
-    const boat = boats[Math.floor(Math.random() * boats.length)];
-
-    super({
-      scene,
-      room,
-      offset,
-      position: boat.localToWorld(new Vector3(0, -0.5, 4.25)),
-      rotation: new Euler(0, boat.rotation.y - Math.PI, 0),
-    });
+    super();
 
     const { ambient, climbables, climbing, models, player, sfx, translocables } = scene;
     ambient.set('sounds/sea.ogg');
     scene.background = new Color(0x336688);
     scene.fog = new FogExp2(scene.background.getHex(), 0.02);
+    this.player = player;
 
     this.birds = new Birds({ anchor: player });
     this.add(this.birds);
@@ -66,6 +45,53 @@ class Tower extends ElevatorWorld {
       return explosion;
     });
     this.explosions = explosions;
+
+    const boatModelOffset = new Vector3(-4, -3, 0);
+    const spawn = Math.floor(Math.random() * 2);
+    const boats = [
+      new Vector3(-17.5, 3.5, -21),
+      new Vector3(21, 3.5, -21),
+    ].map((position, i) => {
+      const boat = new Group();
+      boat.position.copy(position);
+      boat.rotation.order = 'YXZ';
+      boat.lookAt(0, position.y, 0);
+      boat.rotateY(Math.PI);
+      boat.updateMatrixWorld();
+      const elevator = new Elevator({
+        isOpen: i !== spawn,
+        models,
+        sfx,
+        onOpen: () => {
+          elevator.onClose = () => (
+            scene.load('Menu', { offset: elevator.getOffset(player), room })
+          );
+        },
+      });
+      boat.localToWorld(elevator.position.set(0, -0.5, 4.25));
+      elevator.rotation.y = boat.rotation.y - Math.PI;
+      elevator.scale.setScalar(0.25);
+      elevator.updateMatrixWorld();
+      translocables.push(elevator.translocables);
+      this.add(elevator);
+      boat.elevator = elevator;
+      return boat;
+    });
+    this.boats = boats;
+
+    {
+      const origin = new Vector3();
+      const { elevator } = boats[spawn];
+      if (offset) {
+        elevator.localToWorld(origin.copy(offset.position));
+        player.teleport(origin);
+        player.rotate(elevator.rotation.y - offset.rotation);
+      } else {
+        elevator.localToWorld(origin.set(0, 2, -7));
+        player.teleport(origin);
+        player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
+      }
+    }
 
     const color = new Color();
     const vector = new Vector3();
@@ -152,10 +178,9 @@ class Tower extends ElevatorWorld {
       this.add(button);
       this.physics.addMesh(button, 1);
       button.constraint = this.physics.addConstraint(button, button.slider);
-      const origin = new Vector3(0, 2, -7);
-      this.elevator.localToWorld(origin);
-      player.teleport(origin);
-      player.rotate(this.elevator.rotation.y - Math.PI - player.head.rotation.y);
+      const { elevator } = boats[Math.floor(Math.random() * boats.length)];
+      player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
+      player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
       for (let i = 0; i < this.spheres.count; i += 1) {
         this.physics.setMeshPosition(
           this.spheres,
@@ -221,7 +246,7 @@ class Tower extends ElevatorWorld {
         }),
     ])
       .then(() => {
-        this.elevator.isOpen = true;
+        boats[spawn].elevator.isOpen = true;
       });
 
     models.load('models/rocket.glb')
@@ -334,12 +359,11 @@ class Tower extends ElevatorWorld {
   }
 
   onAnimationTick(animation) {
-    super.onAnimationTick(animation);
     const {
       birds,
+      boats,
       clouds,
       explosions,
-      isOnElevator,
       peers,
       physics,
       player,
@@ -353,6 +377,27 @@ class Tower extends ElevatorWorld {
       peers.animate(animation);
     }
     rocket.animate(animation);
+    let isOnElevator = false;
+    boats.forEach(({ elevator }) => {
+      elevator.animate(animation);
+      if (
+        !isOnElevator
+        && elevator.containsPoint(player.head.position)
+      ) {
+        isOnElevator = true;
+        if (
+          elevator.isOpen
+          && (
+            player.desktopControls.buttons.primaryDown
+            || player.controllers.find(
+              ({ hand, buttons: { triggerDown } }) => (hand && triggerDown)
+            )
+          )
+        ) {
+          elevator.isOpen = false;
+        }
+      }
+    });
     if (!physics || isOnElevator) {
       return;
     }
