@@ -9,7 +9,8 @@ class Menu extends Group {
   constructor(scene, { offset, room }) {
     super();
 
-    const { models, player, sfx, translocables } = scene;
+    const { ambient, models, player, sfx, translocables } = scene;
+    ambient.set('sounds/room.ogg');
     this.player = player;
 
     this.add(new Controls());
