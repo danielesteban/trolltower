@@ -1,4 +1,5 @@
 import { Group, Vector3 } from '../core/three.js';
+import Controls from '../renderables/controls.js';
 import Display from '../renderables/display.js';
 import Elevator from '../renderables/elevator.js';
 import Title from '../renderables/title.js';
@@ -10,6 +11,7 @@ class Menu extends Group {
     const { models, player, sfx, translocables } = scene;
     this.player = player;
 
+    this.add(new Controls());
     this.add(new Title());
 
     this.elevators = [...Array(4)].map((v, i) => {
