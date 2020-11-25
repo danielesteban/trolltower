@@ -9,7 +9,7 @@
     <div id="peers"></div>
     <script>
       const dom = document.getElementById('peers');
-      const rooms = ['1', '2', '3', '4'];
+      const rooms = ['Menu', '1', '2', '3', '4'];
       const sound = new Audio();
       sound.src = 'sounds/ding.ogg';
       sound.volume = 0.5;
@@ -22,11 +22,11 @@
             dom.removeChild(dom.firstChild);
           }
           const previous = count;
-          count = rooms.reduce((total, room) => {
+          count = rooms.reduce((total, room, i) => {
             const div = document.createElement('div');
             div.className = `room${peers[room] ? ' active' : ''}`;
             const id = document.createElement('div');
-            id.innerText = `Server: 0${room}`;
+            id.innerText = `${i > 0 ? 'Server 0' : ''}${room}`;
             div.appendChild(id);
             const count = document.createElement('div');
             count.className = 'count';
