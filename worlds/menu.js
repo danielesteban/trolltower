@@ -30,7 +30,7 @@ class Menu extends Group {
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
       elevator.display = new Display({ width: 128, height: 32 });
-      elevator.display.position.set(0, 13, 1.25);
+      elevator.display.position.set(0, 13, 0.125);
       elevator.add(elevator.display);
       elevator.updateMatrixWorld();
       translocables.push(elevator.translocables);

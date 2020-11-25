@@ -23,12 +23,12 @@ class Display extends Mesh {
       new MeshBasicMaterial({ map: new CanvasTexture(renderer) })
     );
     const ctx = renderer.getContext('2d');
-    ctx.fillStyle = '#eee';
+    ctx.fillStyle = '#aaa';
     ctx.fillRect(0, 0, renderer.width, renderer.height);
     ctx.fillStyle = '#222';
     const b = 4;
     ctx.fillRect(b, b, renderer.width - (b * 2), renderer.height - (b * 2));
-    ctx.fillStyle = '#eee';
+    ctx.fillStyle = '#aaa';
     ctx.fillRect(b * 2, b * 2, renderer.width - (b * 4), renderer.height - (b * 4));
     ctx.fillStyle = '#000';
     ctx.textAlign = 'center';
@@ -56,7 +56,7 @@ class Display extends Mesh {
   update() {
     const { material, renderer, value } = this;
     const ctx = renderer.getContext('2d');
-    ctx.fillStyle = '#eee';
+    ctx.fillStyle = '#aaa';
     ctx.fillRect(10, 10, renderer.width - 20, renderer.height - 20);
     ctx.fillStyle = '#000';
     ctx.fillText(value, renderer.width * 0.5, renderer.height * 0.5);
