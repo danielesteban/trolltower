@@ -4,7 +4,6 @@ class Room {
   constructor(id) {
     this.clients = [];
     this.id = id;
-    this.state = 0;
   }
 
   onClose(client) {
@@ -24,7 +23,7 @@ class Room {
   }
 
   onClient(client) {
-    const { clients, pingInterval, state } = this;
+    const { clients, pingInterval } = this;
     const { maxClients } = Room;
     if (clients.length >= maxClients) {
       client.send(JSON.stringify({
@@ -39,7 +38,6 @@ class Room {
       type: 'INIT',
       data: {
         peers: clients.map(({ id }) => (id)),
-        state,
       },
     }), () => {});
     this.broadcast({
@@ -92,19 +90,6 @@ class Room {
             });
           }
         }
-        break;
-      }
-      case 'STATE': {
-        const state = parseInt(request.data, 10);
-        if (!Number.isNaN(state)) {
-          this.state = state;
-        } else {
-          this.state += 1;
-        }
-        this.broadcast({
-          type: 'STATE',
-          data: this.state,
-        });
         break;
       }
       default:

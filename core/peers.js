@@ -9,8 +9,6 @@ class Peers extends Group {
     onLeave,
     onJoin,
     onPeerMessage,
-    onState,
-    onUpdate,
     player,
     room,
   }) {
@@ -18,8 +16,6 @@ class Peers extends Group {
     this.onLeave = onLeave;
     this.onJoin = onJoin;
     this.onPeerMessage = onPeerMessage;
-    this.onState = onState;
-    this.onUpdate = onUpdate;
     this.peers = [];
     this.player = player;
     this.room = room;
@@ -190,9 +186,6 @@ class Peers extends Group {
         break;
       case 'INIT':
         this.peers = data.peers.map((id) => this.connectToPeer({ id, initiator: true }));
-        if (this.onState) {
-          this.onState(data.state);
-        }
         break;
       case 'JOIN':
         peers.push(this.connectToPeer({ id: data }));
@@ -224,16 +217,6 @@ class Peers extends Group {
         }
         break;
       }
-      case 'STATE':
-        if (this.onState) {
-          this.onState(data);
-        }
-        break;
-      case 'UPDATE':
-        if (this.onUpdate) {
-          this.onUpdate(data);
-        }
-        break;
       default:
         break;
     }
@@ -281,16 +264,6 @@ class Peers extends Group {
       peer.dispose();
     });
     peers.length = 0;
-  }
-
-  updateState(data) {
-    const { server } = this;
-    if (server) {
-      server.send(JSON.stringify({
-        type: 'STATE',
-        data,
-      }));
-    }
   }
 }
 
