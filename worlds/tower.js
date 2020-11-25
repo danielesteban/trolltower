@@ -349,7 +349,6 @@ class Tower extends Group {
         });
         this.physics.addMesh(rocket, 0, { isKinematic: true });
         towerPhysics.forEach((box) => {
-          box.isTower = true;
           climbables.push(box);
           translocables.push(box);
           this.physics.addMesh(box);
