@@ -401,7 +401,4 @@ class Tower extends ElevatorWorld {
   }
 }
 
-Tower.display = 'Troll Tower';
-Tower.isMultiplayer = true;
-
 export default Tower;

@@ -1,4 +1,5 @@
 import { Group, Vector3 } from '../core/three.js';
+import Peers from '../core/peers.js';
 import Controls from '../renderables/controls.js';
 import Display from '../renderables/display.js';
 import Elevator from '../renderables/elevator.js';
@@ -37,7 +38,7 @@ class Menu extends Group {
       return elevator;
     });
 
-    const updatePeers = () => (
+    const updateDisplays = () => (
       fetch('https://rooms.trolltower.app/peers')
         .then((res) => res.json())
         .then((rooms) => {
@@ -47,8 +48,8 @@ class Menu extends Group {
         })
     );
 
-    this.updatePeersInterval = setInterval(updatePeers, 10000);
-    updatePeers();
+    this.updateDisplaysInterval = setInterval(updateDisplays, 10000);
+    updateDisplays();
 
     const origin = new Vector3(0, 0.5, 0);
     if (offset) {
@@ -60,6 +61,12 @@ class Menu extends Group {
       player.rotation.y = 0;
       player.teleport(origin);
     }
+
+    this.peers = new Peers({
+      player,
+      room: 'wss://rooms.trolltower.app/Menu',
+    });
+    this.add(this.peers);
 
     models.load('models/menu.glb')
       .then((model) => {
@@ -77,13 +84,15 @@ class Menu extends Group {
       });
   }
 
-  onAnimationTick({ delta }) {
+  onAnimationTick(animation) {
     const {
       elevators,
+      peers,
       player,
     } = this;
+    peers.animate(animation);
     elevators.forEach((elevator) => {
-      elevator.animate(delta);
+      elevator.animate(animation.delta);
       if (
         elevator.isOpen
         && elevator.containsPoint(player.head.position)
@@ -98,9 +107,10 @@ class Menu extends Group {
   }
 
   onUnload() {
-    const { elevators, updatePeersInterval } = this;
+    const { elevators, peers, updateDisplaysInterval } = this;
     elevators.forEach((elevator) => elevator.display.dispose());
-    clearInterval(updatePeersInterval);
+    peers.disconnect();
+    clearInterval(updateDisplaysInterval);
   }
 }
 
