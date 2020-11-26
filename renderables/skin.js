@@ -218,10 +218,10 @@ class Skin extends Group {
   }
 
   dispose() {
-    const { head, layers, picker } = this;
-    head.dispose();
-    layers.dispose();
-    picker.dispose();
+    const { children } = this;
+    children.forEach((child) => (
+      child.dispose()
+    ));
   }
 }
 
