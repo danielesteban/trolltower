@@ -18,17 +18,8 @@ class Menu extends Group {
     this.add(new Controls());
     this.add(new Title());
 
-    this.elevators = [...Array(4)].map((v, i) => {
-      const elevator = new Elevator({
-        isOpen: !offset || room !== (i + 1),
-        models,
-        sfx,
-        onOpen: () => {
-          elevator.onClose = () => (
-            scene.load('Tower', { offset: elevator.getOffset(player), room: i + 1 })
-          );
-        },
-      });
+    const elevators = [...Array(4)].map((v, i) => {
+      const elevator = new Elevator({ models, sfx });
       elevator.position.set(7.75, 0, -4.5 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
@@ -40,23 +31,30 @@ class Menu extends Group {
       this.add(elevator);
       return elevator;
     });
+    this.elevators = elevators;
 
-    const updateDisplays = () => (
+    const updateElevators = () => (
       fetch('https://rooms.trolltower.app/peers')
         .then((res) => res.json())
-        .then((rooms) => {
-          this.elevators.forEach((elevator, i) => {
-            elevator.display.set(`SERVER 0${i + 1} - PLAYERS ${rooms[i + 1] || 0}/16`);
-          });
-        })
+        .then((rooms) => (
+          elevators.forEach((elevator, i) => {
+            const maxPeers = 16;
+            const peers = rooms[i + 1] || 0;
+            elevator.isOpen = peers < maxPeers;
+            elevator.onClose = elevator.isOpen ? () => (
+              scene.load('Tower', { offset: elevator.getOffset(player), room: i + 1 })
+            ) : undefined;
+            elevator.display.set(`SERVER 0${i + 1} - PLAYERS ${peers}/${maxPeers}`);
+          })
+        ))
     );
 
-    this.updateDisplaysInterval = setInterval(updateDisplays, 10000);
-    updateDisplays();
+    this.updateElevatorsInterval = setInterval(updateElevators, 10000);
+    updateElevators();
 
     const origin = new Vector3(0, 0.5, 0);
     if (offset) {
-      const elevator = this.elevators[room - 1];
+      const elevator = elevators[room - 1];
       elevator.localToWorld(origin.copy(offset.position));
       player.teleport(origin);
       player.rotate(elevator.rotation.y - offset.rotation);
@@ -67,7 +65,8 @@ class Menu extends Group {
 
     this.peers = new Peers({
       player,
-      room: 'wss://rooms.trolltower.app/Menu',
+      // room: 'wss://rooms.trolltower.app/Menu',
+      room: 'ws://localhost:3000/Menu',
     });
     this.add(this.peers);
 
@@ -95,9 +94,6 @@ class Menu extends Group {
       .then((model) => {
         model.scale.setScalar(0.5);
         this.add(model);
-        if (offset) {
-          this.elevators[room - 1].isOpen = true;
-        }
       });
 
     Promise.all([
@@ -162,12 +158,12 @@ class Menu extends Group {
       elevators,
       peers,
       skin,
-      updateDisplaysInterval,
+      updateElevatorsInterval,
     } = this;
     elevators.forEach((elevator) => elevator.display.dispose());
     peers.disconnect();
     skin.dispose();
-    clearInterval(updateDisplaysInterval);
+    clearInterval(updateElevatorsInterval);
   }
 }
 
