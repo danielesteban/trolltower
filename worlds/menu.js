@@ -40,11 +40,11 @@ class Menu extends Group {
           elevators.forEach((elevator, i) => {
             const maxPeers = 16;
             const peers = rooms[i + 1] || 0;
+            elevator.display.set(`SERVER 0${i + 1} - PLAYERS ${peers}/${maxPeers}`);
             elevator.isOpen = peers < maxPeers;
             elevator.onClose = elevator.isOpen ? () => (
               scene.load('Tower', { offset: elevator.getOffset(player), room: i + 1 })
             ) : undefined;
-            elevator.display.set(`SERVER 0${i + 1} - PLAYERS ${peers}/${maxPeers}`);
           })
         ))
     );

@@ -7,12 +7,17 @@
   </head>
   <body>
     <div id="wrapper">
+      <h5>Live</h5>
       <div id="peers"></div>
-      <canvas id="graph"></canvas>
+      <h5>Last 48H</h5>
+      <canvas id="graphA" class="graph"></canvas>
+      <h5>Last Week</h5>
+      <canvas id="graphB" class="graph"></canvas>
     </div>
     <script>
       const dom = {
-        graph: document.getElementById('graph'),
+        graphA: document.getElementById('graphA'),
+        graphB: document.getElementById('graphB'),
         peers: document.getElementById('peers'),
       };
       const rooms = ['Menu', '1', '2', '3', '4'];
@@ -43,22 +48,24 @@
             }, 0);
             if (count > previous) {
               sound.play();
-              updateGraph();
+              updateGraphs();
             }
           })
       };
-      dom.graph.width = 400;
-      dom.graph.height = 64;
-      const updateGraph = () => {
+      dom.graphA.width = dom.graphB.width = 400;
+      dom.graphA.height = dom.graphB.height = 64;
+      const updateGraphs = () => {
         fetch('https://rooms.trolltower.app/stats')
           .then((res) => res.json())
-          .then((stats) => {
+          .then((stats) => [
+            { graph: dom.graphA, count: 24 * 2 },
+            { graph: dom.graphB, count: 24 * 7 },
+          ].forEach(({ graph, count }) => {
             const max = Object.keys(stats).reduce((max, date) => Math.max(max, stats[date]), 0);
             const now = new Date();
             let time = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()));
-            const count = 24 * 7;
-            const { width, height } = dom.graph;
-            const ctx = dom.graph.getContext('2d');
+            const { width, height } = graph;
+            const ctx = graph.getContext('2d');
             ctx.clearRect(0, 0, width, height);
             const size = width / count;
             const ratio = (height - 10) / max;
@@ -86,11 +93,11 @@
                 );
               }
             }
-          });
+          }));
       };
       setInterval(updatePeers, 10000);
       updatePeers();
-      updateGraph();
+      updateGraphs();
     </script>
     <style>
       body {
@@ -108,21 +115,29 @@
         margin: 0 auto;
         height: 100vh;
       }
-      #graph {
-        margin: 1rem 0;
+      h5 {
+        display: block;
+        text-transform: uppercase;
+      }
+      .graph {
+        border-top: 1px dashed #010;
+        border-bottom: 1px dashed #010;
+        vertical-align: middle;
+        margin-bottom: 1rem;
       }
       #peers {
         display: flex;
         flex-direction: column;
         justify-content: center;
+        margin-bottom: 1rem;
       }
       .room {
         display: flex;
         padding: 0.5rem 1rem;
-        border-bottom: 1px dashed #111;
+        border-bottom: 1px dashed #010;
       }
       .room:first-child {
-        border-top: 1px dashed #111;
+        border-top: 1px dashed #010;
       }
       .room.active {
         background: #393;
