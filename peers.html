@@ -6,42 +6,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
   </head>
   <body>
-    <div id="peers"></div>
+    <div id="wrapper">
+      <div id="peers"></div>
+      <canvas id="graph"></canvas>
+    </div>
     <script>
-      const dom = document.getElementById('peers');
+      const dom = {
+        graph: document.getElementById('graph'),
+        peers: document.getElementById('peers'),
+      };
       const rooms = ['Menu', '1', '2', '3', '4'];
       const sound = new Audio();
       sound.src = 'sounds/ding.ogg';
       sound.volume = 0.5;
       let count = Infinity;
-      const update = () => {
+      const updatePeers = () => {
         fetch('https://rooms.trolltower.app/peers')
-        .then((res) => res.json())
-        .then((peers) => {
-          while (dom.firstChild) {
-            dom.removeChild(dom.firstChild);
-          }
-          const previous = count;
-          count = rooms.reduce((total, room, i) => {
-            const div = document.createElement('div');
-            div.className = `room${peers[room] ? ' active' : ''}`;
-            const id = document.createElement('div');
-            id.innerText = `${i > 0 ? 'Server 0' : ''}${room}`;
-            div.appendChild(id);
-            const count = document.createElement('div');
-            count.className = 'count';
-            count.innerText = peers[room] || 0;
-            div.appendChild(count);
-            dom.appendChild(div);
-            return total + (peers[room] || 0);
-          }, 0);
-          if (count > previous) {
-            sound.play();
-          }
-        })
+          .then((res) => res.json())
+          .then((peers) => {
+            while (dom.peers.firstChild) {
+              dom.peers.removeChild(dom.peers.firstChild);
+            }
+            const previous = count;
+            count = rooms.reduce((total, room, i) => {
+              const div = document.createElement('div');
+              div.className = `room${peers[room] ? ' active' : ''}`;
+              const id = document.createElement('div');
+              id.innerText = `${i > 0 ? 'Server 0' : ''}${room}`;
+              div.appendChild(id);
+              const count = document.createElement('div');
+              count.className = 'count';
+              count.innerText = peers[room] || 0;
+              div.appendChild(count);
+              dom.peers.appendChild(div);
+              return total + (peers[room] || 0);
+            }, 0);
+            if (count > previous) {
+              sound.play();
+              updateGraph();
+            }
+          })
       };
-      setInterval(update, 10000);
-      update();
+      dom.graph.width = 400;
+      dom.graph.height = 64;
+      const updateGraph = () => {
+        fetch('https://rooms.trolltower.app/stats')
+          .then((res) => res.json())
+          .then((stats) => {
+            const max = Object.keys(stats).reduce((max, date) => Math.max(max, stats[date]), 0);
+            const now = new Date();
+            let time = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()));
+            const count = 24 * 7;
+            const { width, height } = dom.graph;
+            const ctx = dom.graph.getContext('2d');
+            const size = width / count;
+            const ratio = (height - 10) / max;
+            for (let i = count - 1; i >= 0; i -= 1) {
+              const year = time.getUTCFullYear();
+              const month = time.getUTCMonth();
+              const date = time.getUTCDate();
+              const hours = time.getUTCHours();
+              const key = `${year}${month < 9 ? '0' : ''}${month + 1}${date < 10 ? '0' : ''}${date}${hours < 10 ? '0' : ''}${hours}`;
+              time = new Date(Date.UTC(year, month, date, hours - 1));
+              if (hours === 0 || hours === 12) {
+                ctx.fillStyle = hours === 0 ? '#444' : '#333';
+                ctx.fillRect(
+                  size * i, 0,
+                  size, height
+                );
+              }
+              if (stats[key]) {
+                const h = stats[key] * ratio;
+                ctx.fillStyle = '#393';
+                ctx.fillRect(
+                  size * i, height - h,
+                  size, h
+                );
+              }
+            }
+          });
+      };
+      setInterval(updatePeers, 10000);
+      updatePeers();
+      updateGraph();
     </script>
     <style>
       body {
@@ -51,13 +98,21 @@
         overflow-y: scroll;
         color: #fff;
       }
-      #peers {
+      #wrapper {
         display: flex;
         flex-direction: column;
         justify-content: center;
         max-width: 400px;
         margin: 0 auto;
         height: 100vh;
+      }
+      #graph {
+        margin: 1rem 0;
+      }
+      #peers {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       .room {
         display: flex;
