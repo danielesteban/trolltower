@@ -59,6 +59,7 @@
             const count = 24 * 7;
             const { width, height } = dom.graph;
             const ctx = dom.graph.getContext('2d');
+            ctx.clearRect(0, 0, width, height);
             const size = width / count;
             const ratio = (height - 10) / max;
             for (let i = count - 1; i >= 0; i -= 1) {
