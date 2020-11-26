@@ -38,7 +38,10 @@ class Stats {
       raw: true,
     })
       .then((clients) => (
-        clients.map(({ date, count }) => [parseInt(date, 10), count])
+        clients.reduce((clients, { date, count }) => {
+          clients[date] = count;
+          return clients;
+        }, {})
       ));
   }
 }
