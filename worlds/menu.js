@@ -2,6 +2,8 @@ import { Group, Vector3 } from '../core/three.js';
 import Peers from '../core/peers.js';
 import Controls from '../renderables/controls.js';
 import Display from '../renderables/display.js';
+import Door from '../renderables/door.js';
+import Skin from '../renderables/skin.js';
 import Elevator from '../renderables/elevator.js';
 import Title from '../renderables/title.js';
 
@@ -9,7 +11,7 @@ class Menu extends Group {
   constructor(scene, { offset, room }) {
     super();
 
-    const { ambient, models, player, sfx, translocables } = scene;
+    const { ambient, models, player, sfx, pointables, translocables } = scene;
     ambient.set('sounds/room.ogg');
     this.player = player;
 
@@ -69,19 +71,53 @@ class Menu extends Group {
     });
     this.add(this.peers);
 
+    const doors = [...Array(2)].map((v, i) => {
+      const orientation = i === 0 ? 1 : -1;
+      const door = new Door({
+        limits: i === 0 ? { low: -Math.PI, high: 0 } : { low: 0, high: Math.PI },
+        model: 'models/menuDoor.glb',
+        models,
+        orientation,
+      });
+      door.position.set(0.5 * -orientation, 1.75, 7.5);
+      translocables.push(door.translocables);
+      this.add(door);
+      return door;
+    });
+
+    const skin = new Skin(player.skin);
+    skin.position.set(0, 1.5, 13);
+    pointables.push(skin.pointables);
+    this.add(skin);
+    this.skin = skin;
+
     models.load('models/menu.glb')
       .then((model) => {
         model.scale.setScalar(0.5);
         this.add(model);
-        model.traverse((child) => {
-          if (child.isMesh) {
-            translocables.push(child);
-          }
-        });
-
         if (offset) {
           this.elevators[room - 1].isOpen = true;
         }
+      });
+
+    Promise.all([
+      scene.getPhysics(),
+      models.physics('models/menuPhysics.json', 0.5),
+    ])
+      .then(([physics, boxes]) => {
+        this.physics = physics;
+        boxes.forEach((box) => {
+          translocables.push(box);
+          this.physics.addMesh(box);
+          this.add(box);
+        });
+        doors.forEach((door) => {
+          this.physics.addMesh(door, 5);
+          this.physics.addConstraint(door, door.hinge);
+        });
+        player.controllers.forEach((controller) => {
+          this.physics.addMesh(controller.physics, 0, { isKinematic: true, isTrigger: true });
+        });
       });
   }
 
@@ -105,12 +141,32 @@ class Menu extends Group {
         elevator.isOpen = false;
       }
     });
+    player.controllers.forEach(({ buttons, hand, pointer }) => {
+      if (
+        hand
+        && pointer
+        && pointer.visible
+        && (buttons.gripDown || buttons.primaryDown || buttons.triggerDown)
+      ) {
+        pointer.target.object.onPointer({
+          buttons,
+          point: pointer.target.point,
+          uv: pointer.target.uv,
+        });
+      }
+    });
   }
 
   onUnload() {
-    const { elevators, peers, updateDisplaysInterval } = this;
+    const {
+      elevators,
+      peers,
+      skin,
+      updateDisplaysInterval,
+    } = this;
     elevators.forEach((elevator) => elevator.display.dispose());
     peers.disconnect();
+    skin.dispose();
     clearInterval(updateDisplaysInterval);
   }
 }

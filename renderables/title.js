@@ -4,6 +4,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneBufferGeometry,
+  sRGBEncoding,
 } from '../core/three.js';
 
 class Title extends Mesh {
@@ -24,12 +25,13 @@ class Title extends Mesh {
     ctx.fillText('TROLLTOWER', renderer.width * 0.5, renderer.height * 0.25);
     ctx.font = '700 50px monospace';
     ctx.fillText('A WEBXR MULTIPLAYER GAME', renderer.width * 0.5, renderer.height * 0.53);
-    ctx.fillStyle = '#666';
+    ctx.fillStyle = '#999';
     ctx.font = '700 25px monospace';
-    ctx.fillText('v0.0.1 - dani@gatunes © 2020', renderer.width * 0.5, renderer.height * 0.84);
+    ctx.fillText('v0.0.2 - dani@gatunes © 2020', renderer.width * 0.5, renderer.height * 0.84);
     ctx.fillText('textures by greenpixel', renderer.width * 0.5, renderer.height * 0.91);
     const texture = new CanvasTexture(renderer);
     texture.anisotropy = 8;
+    texture.encoding = sRGBEncoding;
     Title.material = new MeshBasicMaterial({ map: texture, transparent: true, side: DoubleSide });
   }
 

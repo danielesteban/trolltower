@@ -3,6 +3,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneBufferGeometry,
+  sRGBEncoding,
 } from '../core/three.js';
 
 class Controls extends Mesh {
@@ -29,6 +30,7 @@ class Controls extends Mesh {
     ctx.fillText('         Launch projectile', renderer.width * 0.5, renderer.height * 0.925);
     const texture = new CanvasTexture(renderer);
     texture.anisotropy = 8;
+    texture.encoding = sRGBEncoding;
     Controls.material = new MeshBasicMaterial({ map: texture, transparent: true });
   }
 

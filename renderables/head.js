@@ -1,5 +1,6 @@
 import {
   BoxBufferGeometry,
+  CanvasTexture,
   DoubleSide,
   Mesh,
   MeshBasicMaterial,
@@ -21,7 +22,7 @@ class Head extends Mesh {
         uv.array[o + 1] = 1 - (((1 - uv.array[o + 1]) + offset.y) * 0.5);
       }
     });
-    geometry.deleteAttribute('normal');
+    delete geometry.attributes.normal;
     Head.geometry = geometry;
   }
 
@@ -31,7 +32,6 @@ class Head extends Mesh {
       transparent: new MeshBasicMaterial({
         alphaTest: 1,
         side: DoubleSide,
-        transparent: true,
       }),
     };
   }
@@ -70,7 +70,51 @@ class Head extends Mesh {
     transparentMaterial.dispose();
   }
 
-  updateTexture(url) {
+  getColor(uv) {
+    const {
+      context,
+      layer,
+      renderer,
+    } = this;
+    uv.x = (uv.x * 0.5) + (layer === 'transparent' ? 0.5 : 0);
+    uv.y = 1 - uv.y;
+    const [r, g, b] = context.getImageData(
+      Math.floor(renderer.width * uv.x),
+      Math.floor(renderer.height * uv.y),
+      1,
+      1
+    ).data;
+    return { r: r / 0xFF, g: g / 0xFF, b: b / 0xFF };
+  }
+
+  getLayer() {
+    const { layer, transparentMesh } = this;
+    if (layer === 'transparent') {
+      return transparentMesh;
+    }
+    return this;
+  }
+
+  setLayer(layer) {
+    const { transparentMesh } = this;
+    transparentMesh.visible = layer === 'transparent';
+    this.layer = layer;
+  }
+
+  regenerate() {
+    const {
+      material,
+      renderer,
+      transparentMesh: { material: transparentMaterial },
+    } = this;
+    Head.generateTexture(renderer);
+    material.map.needsUpdate = true;
+    material.needsUpdate = true;
+    transparentMaterial.map.needsUpdate = true;
+    transparentMaterial.needsUpdate = true;
+  }
+
+  updateTexture(url, editable) {
     const {
       material,
       transparentMesh: { material: transparentMaterial },
@@ -78,7 +122,18 @@ class Head extends Mesh {
     const image = new Image();
     image.src = url;
     image.onload = () => {
-      const opaque = new Texture(image);
+      let opaque;
+      if (editable) {
+        this.renderer = document.createElement('canvas');
+        this.renderer.width = image.width;
+        this.renderer.height = image.height;
+        this.context = this.renderer.getContext('2d');
+        this.context.imageSmoothingEnabled = false;
+        this.context.drawImage(image, 0, 0);
+        opaque = new CanvasTexture(this.renderer);
+      } else {
+        opaque = new Texture(image);
+      }
       opaque.encoding = sRGBEncoding;
       opaque.needsUpdate = true;
       opaque.magFilter = NearestFilter;
@@ -101,6 +156,39 @@ class Head extends Mesh {
     };
   }
 
+  updatePixel({
+    color,
+    remove,
+    uv,
+  }) {
+    const {
+      context,
+      layer,
+      renderer,
+      material,
+      transparentMesh: { material: transparentMaterial },
+    } = this;
+    if (remove && layer !== 'transparent') {
+      return;
+    }
+    uv.x = (uv.x * 0.5) + (layer === 'transparent' ? 0.5 : 0);
+    uv.y = 1 - uv.y;
+    context.fillStyle = color;
+    context[remove ? 'clearRect' : 'fillRect'](
+      Math.floor(renderer.width * uv.x),
+      Math.floor(renderer.height * uv.y),
+      1,
+      1
+    );
+    if (layer === 'transparent') {
+      transparentMaterial.map.needsUpdate = true;
+      transparentMaterial.needsUpdate = true;
+    } else {
+      material.map.needsUpdate = true;
+      material.needsUpdate = true;
+    }
+  }
+
   static generateTexture(renderer = document.createElement('canvas')) {
     renderer.width = 64;
     renderer.height = 16;
@@ -119,6 +207,7 @@ class Head extends Mesh {
       b: Math.floor(Math.random() * 100),
     };
     Head.uvs.forEach((offset, face) => {
+      ctx.save();
       for (let x = 0; x < size; x += 1) {
         for (let y = 0; y < size; y += 1) {
           ctx.globalAlpha = 1;
@@ -181,6 +270,7 @@ class Head extends Mesh {
           1
         )
       ));
+      ctx.restore();
     });
     return renderer;
   }

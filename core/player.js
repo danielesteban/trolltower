@@ -111,7 +111,7 @@ class Player extends Group {
     });
     this.xr = xr;
     {
-      const key = 'blocks-editor-examples:skin';
+      const key = 'trolltower::skin';
       let skin = localStorage.getItem(key);
       if (!skin) {
         skin = Head.generateTexture().toDataURL();
