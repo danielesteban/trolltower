@@ -29,6 +29,7 @@ class Title extends Mesh {
     ctx.fillText('v0.0.1 - dani@gatunes © 2020', renderer.width * 0.5, renderer.height * 0.84);
     ctx.fillText('textures by greenpixel', renderer.width * 0.5, renderer.height * 0.91);
     const texture = new CanvasTexture(renderer);
+    texture.anisotropy = 8;
     Title.material = new MeshBasicMaterial({ map: texture, transparent: true, side: DoubleSide });
   }
 

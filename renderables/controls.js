@@ -28,6 +28,7 @@ class Controls extends Mesh {
     ctx.fillText('TRIGGER: Activate elevator', renderer.width * 0.5, renderer.height * 0.785);
     ctx.fillText('         Launch projectile', renderer.width * 0.5, renderer.height * 0.925);
     const texture = new CanvasTexture(renderer);
+    texture.anisotropy = 8;
     Controls.material = new MeshBasicMaterial({ map: texture, transparent: true });
   }
 
