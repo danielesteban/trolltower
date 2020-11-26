@@ -24,11 +24,12 @@ class Title extends Mesh {
     ctx.font = '700 100px monospace';
     ctx.fillText('TROLLTOWER', renderer.width * 0.5, renderer.height * 0.25);
     ctx.font = '700 50px monospace';
-    ctx.fillText('A WEBXR MULTIPLAYER GAME', renderer.width * 0.5, renderer.height * 0.53);
+    ctx.fillText('A MULTIPLAYER CLIMBING GAME', renderer.width * 0.5, renderer.height * 0.53);
     ctx.fillStyle = '#999';
     ctx.font = '700 25px monospace';
-    ctx.fillText('v0.0.2 - dani@gatunes © 2020', renderer.width * 0.5, renderer.height * 0.84);
-    ctx.fillText('textures by greenpixel', renderer.width * 0.5, renderer.height * 0.91);
+    ctx.fillText('v0.0.2 - dani@gatunes © 2020', renderer.width * 0.5, renderer.height * 0.83);
+    ctx.fillText('textures by greenpixel', renderer.width * 0.5, renderer.height * 0.89);
+    ctx.fillText('made with three.js', renderer.width * 0.5, renderer.height * 0.95);
     const texture = new CanvasTexture(renderer);
     texture.anisotropy = 8;
     texture.encoding = sRGBEncoding;
@@ -47,7 +48,7 @@ class Title extends Mesh {
       Title.material
     );
     this.position.set(0, 3, -6.75);
-    this.rotation.x = Math.PI * -0.1;
+    this.rotation.x = Math.PI * -0.15;
   }
 }
 
