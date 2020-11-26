@@ -4,6 +4,7 @@ const expressWS = require('express-ws');
 const helmet = require('helmet');
 const nocache = require('nocache');
 const Room = require('./room');
+const Stats = require('./stats');
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : false;
 const allowedRooms = process.env.ALLOWED_ROOMS ? process.env.ALLOWED_ROOMS.split(',') : false;
@@ -13,6 +14,7 @@ server.use(helmet());
 expressWS(server, null, { clientTracking: false });
 
 const rooms = new Map();
+const stats = process.env.STATS_STORAGE ? new Stats(process.env.STATS_STORAGE) : false;
 
 server.ws('/:room', (client, req) => {
   if (allowedOrigins && allowedOrigins.indexOf(req.headers.origin) === -1) {
@@ -34,7 +36,7 @@ server.ws('/:room', (client, req) => {
   }
   let room = rooms.get(id);
   if (!room) {
-    room = new Room(id);
+    room = new Room({ id, stats });
     rooms.set(id, room);
   }
   room.onClient(client);
@@ -49,6 +51,13 @@ server.get('/peers', cors({ origin: allowedOrigins || true }), nocache(), (req, 
   });
   res.json(peers);
 });
+
+server.get('/stats', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
+  stats.getClientsByHour('Menu')
+    .then((clients) => (
+      res.json(clients)
+    ))
+));
 
 server.use((req, res) => res.status(404).end());
 server.listen(process.env.PORT || 3000);
