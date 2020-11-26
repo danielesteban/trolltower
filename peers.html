@@ -67,9 +67,10 @@
               const month = time.getUTCMonth();
               const date = time.getUTCDate();
               const hours = time.getUTCHours();
+              const localHours = time.getHours();
               const key = `${year}${month < 9 ? '0' : ''}${month + 1}${date < 10 ? '0' : ''}${date}${hours < 10 ? '0' : ''}${hours}`;
               time = new Date(Date.UTC(year, month, date, hours - 1));
-              if (hours === 0 || hours === 12) {
+              if (localHours === 0 || localHours === 12) {
                 ctx.fillStyle = hours === 0 ? '#444' : '#333';
                 ctx.fillRect(
                   size * i, 0,
