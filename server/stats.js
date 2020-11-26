@@ -33,8 +33,10 @@ class Stats {
       order: [
         ['createdAt', 'DESC'],
       ],
-      limit: 200,
-      where: { room },
+      where: {
+        createdAt: { [Sequelize.Op.gt]: new Date(new Date() - 8 * 24 * 60 * 60 * 1000) },
+        room,
+      },
       raw: true,
     })
       .then((clients) => (
