@@ -46,7 +46,7 @@ export default function CurveCast({
     // Do one last bounce to the floor
     origin.copy(hit.point);
     points.push(steps[maxSteps].copy(origin));
-    direction.copy(hit.face.normal);
+    direction.copy(hit.face.normal).transformDirection(hit.object.matrixWorld);
     direction.y = -1;
     direction.normalize();
     raycaster.far = distance;
