@@ -135,7 +135,8 @@ class Scene extends ThreeScene {
         return;
       }
       if (
-        !player.destination
+        !climbing.isFalling
+        && !player.destination
         && hand.handedness === 'left'
         && (leftwardsDown || rightwardsDown)
       ) {
@@ -145,6 +146,7 @@ class Scene extends ThreeScene {
       }
       if (
         locomotion === locomotions.teleport
+        && !climbing.isFalling
         && !player.destination
         && hand.handedness === 'right'
         && (forwards || forwardsUp)
@@ -186,7 +188,13 @@ class Scene extends ThreeScene {
         });
       }
       if (climbables.length) {
-        if (!climbing.hands[index] && (gripDown || triggerDown)) {
+        if (
+          !climbing.hands[index]
+          && (gripDown || triggerDown)
+          && !(
+            climbing.isFalling && climbing.fallSpeed < -5
+          )
+        ) {
           climbing.aux.setFromObject(physics);
           if (climbables.flat().find((mesh) => {
             if (!mesh.collision) {
