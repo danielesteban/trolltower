@@ -65,8 +65,7 @@ class Menu extends Group {
 
     this.peers = new Peers({
       player,
-      // room: 'wss://rooms.trolltower.app/Menu',
-      room: 'ws://localhost:3000/Menu',
+      room: 'wss://rooms.trolltower.app/Menu',
     });
     this.add(this.peers);
 
