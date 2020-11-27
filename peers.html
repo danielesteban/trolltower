@@ -61,14 +61,14 @@
             { graph: dom.graphA, count: 24 * 2 },
             { graph: dom.graphB, count: 24 * 7 },
           ].forEach(({ graph, count }) => {
-            const max = Object.keys(stats).reduce((max, date) => Math.max(max, stats[date]), 0);
-            const now = new Date();
-            let time = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()));
             const { width, height } = graph;
             const ctx = graph.getContext('2d');
             ctx.clearRect(0, 0, width, height);
+            const max = Object.keys(stats).reduce((max, date) => Math.max(max, stats[date]), 0);
             const size = width / count;
             const ratio = (height - 10) / max;
+            const now = new Date();
+            let time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
             for (let i = count - 1; i >= 0; i -= 1) {
               const year = time.getUTCFullYear();
               const month = time.getUTCMonth();
