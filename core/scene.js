@@ -51,11 +51,16 @@ class Scene extends ThreeScene {
     if (this.physics) {
       return Promise.resolve(this.physics);
     }
-    return AmmoPhysics()
-      .then((physics) => {
-        this.physics = physics;
-        return physics;
-      });
+    if (!this.onPhysics) {
+      this.onPhysics = [];
+      AmmoPhysics()
+        .then((physics) => {
+          this.physics = physics;
+          this.onPhysics.forEach((resolve) => resolve(physics));
+          delete this.onPhysics;
+        });
+    }
+    return new Promise((resolve) => this.onPhysics.push(resolve));
   }
 
   load(world, options = {}) {
