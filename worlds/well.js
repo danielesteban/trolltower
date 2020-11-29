@@ -25,8 +25,8 @@ class Well extends Gameplay {
     const { ambient, models } = scene;
 
     ambient.set('sounds/forest.ogg');
-    scene.background = new Color(0x332200);
-    scene.fog = new FogExp2(scene.background.getHex(), 0.03);
+    scene.background = new Color(0x0A0A11);
+    scene.fog = new FogExp2(scene.background.getHex(), 0.02);
 
     this.add(new Lava());
 
