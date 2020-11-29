@@ -23,11 +23,13 @@ class Menu extends Group {
 
     const elevators = [
       'Tower',
+      'Tower',
+      'Well',
       'Well',
     ].map((world, i) => {
       const elevator = new Elevator({ models, sfx });
       elevator.world = world;
-      elevator.position.set(7.75, 0, -1.5 + i * 3);
+      elevator.position.set(7.75, 0, -4.5 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
       elevator.display = new Display({ width: 128, height: 32 });
@@ -47,18 +49,21 @@ class Menu extends Group {
     const updateElevators = () => (
       fetch('https://rooms.trolltower.app/peers')
         .then((res) => res.json())
-        .then((rooms) => (
+        .then((rooms) => {
+          const map = new Map();
           elevators.forEach((elevator) => {
             if (!alphatester && elevator.world === 'Well') {
               return;
             }
-            const maxPeers = 16;
+            const maxPeers = 1;
             let instance = 0;
             let peers;
             while (true) { // eslint-disable-line no-constant-condition
               instance += 1;
-              peers = rooms[`${elevator.world}-${instance}`] || 0;
-              if (peers < maxPeers) {
+              const key = `${elevator.world}-${instance}`;
+              peers = rooms[key] || 0;
+              if (peers < maxPeers && !map.has(key)) {
+                map.set(key, true);
                 break;
               }
             }
@@ -67,8 +72,8 @@ class Menu extends Group {
             elevator.onClose = elevator.isOpen ? () => (
               scene.load(elevator.world, { offset: elevator.getOffset(player), instance })
             ) : undefined;
-          })
-        ))
+          });
+        })
     );
 
     this.updateElevatorsInterval = setInterval(updateElevators, 10000);
