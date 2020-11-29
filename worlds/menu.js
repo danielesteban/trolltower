@@ -19,6 +19,8 @@ class Menu extends Group {
     this.add(new Controls());
     this.add(new Title());
 
+    const alphatester = !!localStorage.getItem('alphatester');
+
     const elevators = [
       'Tower',
       'Well',
@@ -34,7 +36,7 @@ class Menu extends Group {
       elevator.updateMatrixWorld();
       translocables.push(elevator.translocables);
       this.add(elevator);
-      if (world === 'Well') {
+      if (!alphatester && world === 'Well') {
         elevator.display.set(`The ${elevator.world} - COMING SOON`);
         elevator.add(new Sign());
       }
@@ -47,7 +49,7 @@ class Menu extends Group {
         .then((res) => res.json())
         .then((rooms) => (
           elevators.forEach((elevator, i) => {
-            if (elevator.world === 'Well') {
+            if (!alphatester && elevator.world === 'Well') {
               return;
             }
             const maxPeers = 16;
