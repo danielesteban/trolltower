@@ -4,6 +4,7 @@ import {
   Vector3,
 } from '../core/three.js';
 import Gameplay from './gameplay.js';
+import Lava from '../renderables/lava.js';
 
 class Well extends Gameplay {
   constructor(scene, { offset, instance }) {
@@ -24,8 +25,10 @@ class Well extends Gameplay {
     const { ambient, models } = scene;
 
     ambient.set('sounds/forest.ogg');
-    scene.background = new Color(0x001122);
-    scene.fog = new FogExp2(scene.background.getHex(), 0.06);
+    scene.background = new Color(0x332200);
+    scene.fog = new FogExp2(scene.background.getHex(), 0.03);
+
+    this.add(new Lava());
 
     models.load('models/well.glb')
       .then((model) => {
