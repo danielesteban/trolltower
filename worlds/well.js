@@ -8,12 +8,12 @@ import Gameplay from './gameplay.js';
 class Well extends Gameplay {
   constructor(scene, { offset, instance }) {
     const elevators = [
-      { position: new Vector3(4, 27.5, 11.25), rotation: Math.PI },
+      { position: new Vector3(12.75, 33.5, 0), rotation: Math.PI * -0.5 },
     ];
 
     super({
       elevators,
-      rocketOrigin: new Vector3(4, 4, 0),
+      rocketOrigin: new Vector3(0, 7.5, 0),
       scene,
       offset,
       room: `Well-${instance}`,
