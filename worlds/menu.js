@@ -39,11 +39,11 @@ class Menu extends Group {
         .then((rooms) => (
           elevators.forEach((elevator, i) => {
             const maxPeers = 16;
-            const peers = rooms[i + 1] || 0;
+            const peers = rooms[`Tower-${i + 1}`] || 0;
             elevator.display.set(`SERVER 0${i + 1} - PLAYERS ${peers}/${maxPeers}`);
             elevator.isOpen = peers < maxPeers;
             elevator.onClose = elevator.isOpen ? () => (
-              scene.load('Tower', { offset: elevator.getOffset(player), room: i + 1 })
+              scene.load('Tower', { offset: elevator.getOffset(player), instance: i + 1 })
             ) : undefined;
           })
         ))
@@ -54,7 +54,8 @@ class Menu extends Group {
 
     const origin = new Vector3(0, 0.5, 0);
     if (offset) {
-      const elevator = elevators[room - 1];
+      const [/* id */, instance] = room.split('-');
+      const elevator = elevators[instance - 1];
       elevator.localToWorld(origin.copy(offset.position));
       player.teleport(origin);
       player.rotate(elevator.rotation.y - offset.rotation);

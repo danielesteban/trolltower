@@ -20,7 +20,7 @@
         graphB: document.getElementById('graphB'),
         peers: document.getElementById('peers'),
       };
-      const rooms = ['Menu', '1', '2', '3', '4'];
+      const rooms = ['Menu', 'Tower-1', 'Tower-2', 'Tower-3', 'Tower-4'];
       const sound = new Audio();
       sound.src = 'sounds/ding.ogg';
       sound.volume = 0.5;
@@ -37,7 +37,7 @@
               const div = document.createElement('div');
               div.className = `room${peers[room] ? ' active' : ''}`;
               const id = document.createElement('div');
-              id.innerText = `${i > 0 ? 'Server 0' : ''}${room}`;
+              id.innerText = room;
               div.appendChild(id);
               const count = document.createElement('div');
               count.className = 'count';

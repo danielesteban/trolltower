@@ -13,16 +13,20 @@ class Stats {
         allowNull: false,
         type: Sequelize.STRING,
       },
+      instance: {
+        allowNull: false,
+        type: Sequelize.NUMBER,
+      },
     });
     db.sync();
   }
 
-  onClient(room) {
+  onClient({ id, instance }) {
     const { clients } = this;
-    return clients.create({ room });
+    return clients.create({ room: id, instance });
   }
 
-  getClientsByHour(room) {
+  getClientsByHour(where) {
     const { clients } = this;
     return clients.findAll({
       attributes: [
@@ -35,7 +39,7 @@ class Stats {
       ],
       where: {
         createdAt: { [Sequelize.Op.gt]: new Date(new Date() - 8 * 24 * 60 * 60 * 1000) },
-        room,
+        ...where,
       },
       raw: true,
     })

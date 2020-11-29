@@ -8,7 +8,7 @@ import Gameplay from './gameplay.js';
 import Ocean from '../renderables/ocean.js';
 
 class Tower extends Gameplay {
-  constructor(scene, { offset, room }) {
+  constructor(scene, { offset, instance }) {
     const elevators = [];
     const boats = [
       new Vector3(-17.5, 3.5, -21),
@@ -33,7 +33,7 @@ class Tower extends Gameplay {
       rocketOrigin: new Vector3(0, 31.25, 0),
       scene,
       offset,
-      room,
+      room: `Tower-${instance}`,
       terrainPhysics: 'models/towerIslandPhysics.json',
       towerPhysics: 'models/towerPhysics.json',
     });
