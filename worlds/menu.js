@@ -24,7 +24,7 @@ class Menu extends Group {
     const elevators = [
       'Tower',
       'Tower',
-      'Tower',
+      'Well',
       'Well',
     ].map((world, i) => {
       const elevator = new Elevator({ models, sfx });
