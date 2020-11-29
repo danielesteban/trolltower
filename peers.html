@@ -32,6 +32,15 @@
             while (dom.peers.firstChild) {
               dom.peers.removeChild(dom.peers.firstChild);
             }
+            peers = Object.keys(peers).reduce((merged, key) => {
+              const [id, instance] = key.split('-');
+              if (id === 'Menu') {
+                merged.Menu = (merged.Menu || 0) + peers[key];
+              } else {
+                merged[key] = peers[key];
+              }
+              return merged;
+            }, {});
             const previous = count;
             count = rooms.reduce((total, room, i) => {
               const div = document.createElement('div');

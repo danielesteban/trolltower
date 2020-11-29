@@ -64,11 +64,7 @@ server.get('/peers', cors({ origin: allowedOrigins || true }), nocache(), (req, 
   const peers = {};
   rooms.forEach(({ id, instance, clients }) => {
     if (clients.length) {
-      let key = `${id}-${instance}`;
-      if (id === 'Menu') {
-        key = 'Menu';
-      }
-      peers[key] = (peers[key] || 0) + clients.length;
+      peers[`${id}-${instance}`] = clients.length;
     }
   });
   res.json(peers);
