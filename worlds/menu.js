@@ -48,7 +48,7 @@ class Menu extends Group {
       fetch('https://rooms.trolltower.app/peers')
         .then((res) => res.json())
         .then((rooms) => (
-          elevators.forEach((elevator, i) => {
+          elevators.forEach((elevator) => {
             if (!alphatester && elevator.world === 'Well') {
               return;
             }
@@ -62,7 +62,7 @@ class Menu extends Group {
                 break;
               }
             }
-            elevator.display.set(`The ${elevator.world} - S${i < 9 ? '0' : ''}${instance} - ${peers}/${maxPeers}`);
+            elevator.display.set(`The ${elevator.world} - S${instance < 10 ? '0' : ''}${instance} - ${peers}/${maxPeers}`);
             elevator.isOpen = peers < maxPeers;
             elevator.onClose = elevator.isOpen ? () => (
               scene.load(elevator.world, { offset: elevator.getOffset(player), instance })
