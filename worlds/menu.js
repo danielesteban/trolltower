@@ -5,6 +5,7 @@ import Display from '../renderables/display.js';
 import Door from '../renderables/door.js';
 import Skin from '../renderables/skin.js';
 import Elevator from '../renderables/elevator.js';
+import Sign from '../renderables/sign.js';
 import Title from '../renderables/title.js';
 
 class Menu extends Group {
@@ -18,9 +19,13 @@ class Menu extends Group {
     this.add(new Controls());
     this.add(new Title());
 
-    const elevators = [...Array(4)].map((v, i) => {
+    const elevators = [
+      'Tower',
+      'Well',
+    ].map((world, i) => {
       const elevator = new Elevator({ models, sfx });
-      elevator.position.set(7.75, 0, -4.5 + i * 3);
+      elevator.world = world;
+      elevator.position.set(7.75, 0, -1.5 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
       elevator.display = new Display({ width: 128, height: 32 });
@@ -29,6 +34,10 @@ class Menu extends Group {
       elevator.updateMatrixWorld();
       translocables.push(elevator.translocables);
       this.add(elevator);
+      if (world === 'Well') {
+        elevator.display.set(`The ${elevator.world} - COMING SOON`);
+        elevator.add(new Sign());
+      }
       return elevator;
     });
     this.elevators = elevators;
@@ -38,12 +47,23 @@ class Menu extends Group {
         .then((res) => res.json())
         .then((rooms) => (
           elevators.forEach((elevator, i) => {
+            if (elevator.world === 'Well') {
+              return;
+            }
             const maxPeers = 16;
-            const peers = rooms[`Tower-${i + 1}`] || 0;
-            elevator.display.set(`SERVER 0${i + 1} - PLAYERS ${peers}/${maxPeers}`);
+            let instance = 0;
+            let peers;
+            while (true) { // eslint-disable-line no-constant-condition
+              instance += 1;
+              peers = rooms[`${elevator.world}-${instance}`] || 0;
+              if (peers < maxPeers) {
+                break;
+              }
+            }
+            elevator.display.set(`The ${elevator.world} - S${i < 9 ? '0' : ''}${instance} - ${peers}/${maxPeers}`);
             elevator.isOpen = peers < maxPeers;
             elevator.onClose = elevator.isOpen ? () => (
-              scene.load('Tower', { offset: elevator.getOffset(player), instance: i + 1 })
+              scene.load(elevator.world, { offset: elevator.getOffset(player), instance })
             ) : undefined;
           })
         ))
@@ -54,8 +74,8 @@ class Menu extends Group {
 
     const origin = new Vector3(0, 0.5, 0);
     if (offset) {
-      const [/* id */, instance] = room.split('-');
-      const elevator = elevators[instance - 1];
+      const [world] = room.split('-');
+      const elevator = elevators.find(({ world: id }) => world === id);
       elevator.localToWorld(origin.copy(offset.position));
       player.teleport(origin);
       player.rotate(elevator.rotation.y - offset.rotation);

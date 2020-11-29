@@ -32,7 +32,7 @@ server.ws('/:room', (client, req) => {
     id = 'Menu';
     let i = 1;
     while (!instance) {
-      const room = rooms.get(`${id}:${i}`);
+      const room = rooms.get(`${id}-${i}`);
       if (!room || room.clients.length < room.constructor.maxClients) {
         instance = i;
       }
@@ -51,7 +51,7 @@ server.ws('/:room', (client, req) => {
       return;
     }
   }
-  key = `${id}:${instance}`;
+  key = `${id}-${instance}`;
   let room = rooms.get(key);
   if (!room) {
     room = new Room({ id, instance, stats });
