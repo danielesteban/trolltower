@@ -9,13 +9,11 @@ import Lava from '../renderables/lava.js';
 
 class Well extends Gameplay {
   constructor(scene, { offset, instance }) {
-    const elevators = [
-      { position: new Vector3(13.25, 33.5, 0), rotation: Math.PI * -0.5 },
-      { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },
-    ];
-
     super({
-      elevators,
+      elevators: [
+        { position: new Vector3(13.25, 33.5, 0), rotation: Math.PI * -0.5 },
+        { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },
+      ],
       rocketOrigin: new Vector3(0, 7.25, 0),
       scene,
       offset,
