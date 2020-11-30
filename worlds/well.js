@@ -33,7 +33,6 @@ class Well extends Gameplay {
     this.burning = burning;
 
     const lava = new Lava({ sfx });
-    lava.position.y = 0.5;
     this.add(lava);
     this.lava = lava;
 
@@ -42,6 +41,12 @@ class Well extends Gameplay {
         model.scale.setScalar(0.5);
         this.add(model);
         this.spawn.isOpen = true;
+      });
+
+    scene.getPhysics()
+      .then(() => {
+        lava.onContact = this.player.head.physics.onContact;
+        this.physics.addMesh(lava, 0, { isTrigger: true });
       });
   }
 

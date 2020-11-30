@@ -17,6 +17,13 @@ class Lava extends Mesh {
     Lava.geometry = new PlaneBufferGeometry(32, 32);
     Lava.geometry.deleteAttribute('normal');
     Lava.geometry.rotateX(Math.PI * -0.5);
+    Lava.geometry.translate(0, 0.5, 0);
+    Lava.geometry.physics = {
+      shape: 'box',
+      width: Lava.geometry.parameters.width,
+      height: 1,
+      depth: Lava.geometry.parameters.height,
+    };
   }
 
   static setupMaterial() {
