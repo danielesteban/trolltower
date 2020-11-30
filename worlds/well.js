@@ -48,7 +48,7 @@ class Well extends Gameplay {
   onAnimationTick(animation) {
     const { burning, player } = this;
     super.onAnimationTick(animation);
-    if (player.head.position.y < 3) {
+    if (burning.visible || player.head.position.y < 3) {
       if (burning.animate(animation)) {
         this.respawn();
       }
