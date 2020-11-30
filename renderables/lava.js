@@ -86,11 +86,13 @@ class Lava extends Mesh {
     );
     sfx.load('sounds/lava.ogg')
       .then((sound) => {
-        this.sound = sound;
-        sound.setRefDistance(8);
         sound.setLoop(true);
-        sound.play();
+        sound.setRefDistance(6);
+        this.sound = sound;
         this.add(sound);
+        if (sound.context.state === 'running') {
+          sound.play();
+        }
       });
   }
 
