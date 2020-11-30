@@ -5,7 +5,6 @@ import Display from '../renderables/display.js';
 import Door from '../renderables/door.js';
 import Skin from '../renderables/skin.js';
 import Elevator from '../renderables/elevator.js';
-import Sign from '../renderables/sign.js';
 import Title from '../renderables/title.js';
 
 class Menu extends Group {
@@ -19,8 +18,6 @@ class Menu extends Group {
     this.add(new Controls());
     this.add(new Title());
 
-    const alphatester = !!localStorage.getItem('alphatester');
-
     const elevators = [
       'Tower',
       'Tower',
@@ -32,16 +29,12 @@ class Menu extends Group {
       elevator.position.set(7.75, 0, -4.5 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
-      elevator.display = new Display({ width: 128, height: 32 });
+      elevator.display = new Display({ isDark: world === 'Well' });
       elevator.display.position.set(0, 13, 0.125);
       elevator.add(elevator.display);
       elevator.updateMatrixWorld();
       translocables.push(elevator.translocables);
       this.add(elevator);
-      if (!alphatester && world === 'Well') {
-        elevator.display.set(`The ${elevator.world} - COMING SOON`);
-        elevator.add(new Sign());
-      }
       return elevator;
     });
     this.elevators = elevators;
@@ -52,10 +45,7 @@ class Menu extends Group {
         .then((rooms) => {
           const map = new Map();
           elevators.forEach((elevator) => {
-            if (!alphatester && elevator.world === 'Well') {
-              return;
-            }
-            const maxPeers = 1;
+            const maxPeers = 16;
             let instance = 0;
             let peers;
             while (true) { // eslint-disable-line no-constant-condition

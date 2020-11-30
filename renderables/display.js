@@ -3,6 +3,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneBufferGeometry,
+  sRGBEncoding,
 } from '../core/three.js';
 
 class Display extends Mesh {
@@ -11,29 +12,34 @@ class Display extends Mesh {
     Display.geometry.deleteAttribute('normal');
   }
 
-  constructor() {
+  constructor({ isDark }) {
     if (!Display.geometry) {
       Display.setupGeometry();
     }
     const renderer = document.createElement('canvas');
     renderer.width = 512;
     renderer.height = 128;
+    const texture = new CanvasTexture(renderer);
+    texture.encoding = sRGBEncoding;
     super(
       Display.geometry,
-      new MeshBasicMaterial({ map: new CanvasTexture(renderer) })
+      new MeshBasicMaterial({ map: texture })
     );
+    const background = isDark ? '#000' : '#fff';
+    const foreground = isDark ? '#fff' : '#000';
     const ctx = renderer.getContext('2d');
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = background;
     ctx.fillRect(0, 0, renderer.width, renderer.height);
-    ctx.fillStyle = '#222';
+    ctx.fillStyle = foreground;
     const b = 4;
     ctx.fillRect(b, b, renderer.width - (b * 2), renderer.height - (b * 2));
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = background;
     ctx.fillRect(b * 2, b * 2, renderer.width - (b * 4), renderer.height - (b * 4));
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = foreground;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = '700 32px monospace';
+    this.colors = { background, foreground };
     this.renderer = renderer;
     this.value = 'Loading...';
     this.update();
@@ -54,11 +60,16 @@ class Display extends Mesh {
   }
 
   update() {
-    const { material, renderer, value } = this;
+    const {
+      colors: { background, foreground },
+      material,
+      renderer,
+      value,
+    } = this;
     const ctx = renderer.getContext('2d');
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = background;
     ctx.fillRect(10, 10, renderer.width - 20, renderer.height - 20);
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = foreground;
     ctx.fillText(value, renderer.width * 0.5, renderer.height * 0.5);
     material.map.needsUpdate = true;
   }
