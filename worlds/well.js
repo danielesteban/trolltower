@@ -71,6 +71,7 @@ class Well extends Gameplay {
 
   onUnload() {
     const { lava } = this;
+    super.onUnload();
     lava.stopAudio();
   }
 }
