@@ -17,7 +17,6 @@ class Lava extends Mesh {
     Lava.geometry = new PlaneBufferGeometry(32, 32);
     Lava.geometry.deleteAttribute('normal');
     Lava.geometry.rotateX(Math.PI * -0.5);
-    Lava.geometry.translate(0, 0.5, 0);
   }
 
   static setupMaterial() {
@@ -74,7 +73,7 @@ class Lava extends Mesh {
     Lava.material.map = texture;
   }
 
-  constructor() {
+  constructor({ sfx }) {
     if (!Lava.geometry) {
       Lava.setupGeometry();
     }
@@ -85,10 +84,32 @@ class Lava extends Mesh {
       Lava.geometry,
       Lava.material
     );
+    sfx.load('sounds/lava.ogg')
+      .then((sound) => {
+        this.sound = sound;
+        sound.setRefDistance(8);
+        sound.setLoop(true);
+        sound.play();
+        this.add(sound);
+      });
   }
 
-  onBeforeRender({ animation: { delta } }) {
-    Lava.material.uniforms.step.value += delta;
+  resumeAudio() {
+    const { sound } = this;
+    if (sound && !sound.isPlaying) {
+      sound.play();
+    }
+  }
+
+  stopAudio() {
+    const { sound } = this;
+    if (sound && sound.isPlaying) {
+      sound.stop();
+    }
+  }
+
+  static animate({ time }) {
+    Lava.material.uniforms.step.value = time;
   }
 }
 

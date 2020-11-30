@@ -4,17 +4,19 @@ import {
   Vector3,
 } from '../core/three.js';
 import Gameplay from './gameplay.js';
+import Effect from '../renderables/effect.js';
 import Lava from '../renderables/lava.js';
 
 class Well extends Gameplay {
   constructor(scene, { offset, instance }) {
     const elevators = [
-      { position: new Vector3(12.75, 33.5, 0), rotation: Math.PI * -0.5 },
+      { position: new Vector3(13.25, 33.5, 0), rotation: Math.PI * -0.5 },
+      { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },
     ];
 
     super({
       elevators,
-      rocketOrigin: new Vector3(0, 7.5, 0),
+      rocketOrigin: new Vector3(0, 7.25, 0),
       scene,
       offset,
       room: `Well-${instance}`,
@@ -22,13 +24,20 @@ class Well extends Gameplay {
       towerPhysics: 'models/wellPhysics.json',
     });
 
-    const { ambient, models } = scene;
+    const { ambient, models, sfx } = scene;
 
     ambient.set('sounds/forest.ogg');
     scene.background = new Color(0x0A0A11);
     scene.fog = new FogExp2(scene.background.getHex(), 0.02);
 
-    this.add(new Lava());
+    const burning = new Effect({ anchor: this.player.head, color: 0xFF0000 });
+    this.add(burning);
+    this.burning = burning;
+
+    const lava = new Lava({ sfx });
+    lava.position.y = 0.5;
+    this.add(lava);
+    this.lava = lava;
 
     models.load('models/well.glb')
       .then((model) => {
@@ -36,6 +45,33 @@ class Well extends Gameplay {
         this.add(model);
         this.spawn.isOpen = true;
       });
+  }
+
+  onAnimationTick(animation) {
+    const { burning, player } = this;
+    super.onAnimationTick(animation);
+    if (player.head.position.y < 3) {
+      if (burning.animate(animation)) {
+        this.respawn();
+      }
+    }
+    Lava.animate(animation);
+  }
+
+  respawn() {
+    const { burning } = this;
+    super.respawn();
+    burning.reset();
+  }
+
+  resumeAudio() {
+    const { lava } = this;
+    lava.resumeAudio();
+  }
+
+  onUnload() {
+    const { lava } = this;
+    lava.stopAudio();
   }
 }
 

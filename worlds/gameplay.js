@@ -169,10 +169,6 @@ class Gameplay extends Group {
       this.add(button);
       this.physics.addMesh(button, 1);
       button.constraint = this.physics.addConstraint(button, button.slider);
-      const elevator = elevators[Math.floor(Math.random() * elevators.length)];
-      player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
-      player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
-      this.spawn = elevator;
       for (let i = 0; i < this.spheres.count; i += 1) {
         this.physics.setMeshPosition(
           this.spheres,
@@ -181,6 +177,7 @@ class Gameplay extends Group {
           false
         );
       }
+      this.respawn();
     };
 
     const onContact = ({ mesh, index, point }) => {
@@ -368,6 +365,14 @@ class Gameplay extends Group {
         ]).buffer));
       }
     });
+  }
+
+  respawn() {
+    const { elevators, player } = this;
+    const elevator = elevators[Math.floor(Math.random() * elevators.length)];
+    player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
+    player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
+    this.spawn = elevator;
   }
 
   spawnSphere(position, impulse) {
