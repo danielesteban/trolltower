@@ -14,6 +14,7 @@ class Effect extends Mesh {
 
   static setupMaterial() {
     Effect.material = new MeshBasicMaterial({
+      depthTest: false,
       side: BackSide,
       transparent: true,
     });
