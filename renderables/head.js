@@ -22,7 +22,7 @@ class Head extends Mesh {
         uv.array[o + 1] = 1 - (((1 - uv.array[o + 1]) + offset.y) * 0.5);
       }
     });
-    delete geometry.attributes.normal;
+    geometry.deleteAttribute('normal');
     Head.geometry = geometry;
   }
 
