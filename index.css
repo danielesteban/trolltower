@@ -12,6 +12,12 @@ canvas {
   vertical-align: middle;
 }
 
+#discord {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+}
+
 #info {
   position: absolute;
   bottom: 1rem;
