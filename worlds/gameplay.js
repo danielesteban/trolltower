@@ -27,7 +27,14 @@ class Gameplay extends Group {
   }) {
     super();
 
-    const { climbables, climbing, models, player, sfx, translocables } = scene;
+    const {
+      climbables,
+      climbing,
+      models,
+      player,
+      sfx,
+      translocables,
+    } = scene;
 
     this.birds = new Birds({ anchor: player });
     this.add(this.birds);
