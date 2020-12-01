@@ -105,11 +105,13 @@ class Player extends Group {
       return controller;
     });
     this.desktopControls = new DesktopControls({
-      enabled: window.localStorage.getItem('development'),
+      enabled: (
+        document.location.origin === 'https://localhost:5000'
+        || window.localStorage.getItem('debug')
+      ),
       renderer: dom.renderer,
       xr,
     });
-    this.xr = xr;
     {
       const key = 'trolltower::skin';
       let skin = localStorage.getItem(key);
