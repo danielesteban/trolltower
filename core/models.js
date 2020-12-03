@@ -4,14 +4,12 @@ import {
   Mesh,
   MeshBasicMaterial,
 } from './three.js';
-import Lightmap from './lightmap.js';
 
 class Models {
   constructor() {
     this.loader = new GLTFLoader();
     this.bodies = new Map();
     this.models = new Map();
-    this.lightmaps = new Map();
   }
 
   load(model) {
@@ -34,39 +32,6 @@ class Models {
         cache.promises.push(resolve);
       } else {
         resolve(cache.model.clone());
-      }
-    });
-  }
-
-  lightmap(lightmap, baseShader = 'basic') {
-    const { lightmaps } = this;
-    return new Promise((resolve) => {
-      let cache = lightmaps.get(lightmap);
-      if (!cache) {
-        cache = {
-          loading: true,
-          promises: [resolve],
-        };
-        lightmaps.set(lightmap, cache);
-        fetch(lightmap)
-          .then((res) => res.json())
-          .then((lightmap) => {
-            cache.loading = false;
-            cache.lightmap = {
-              material: new Lightmap({
-                baseShader,
-                lightmap,
-              }),
-              origin: lightmap.origin,
-              size: lightmap.size,
-            };
-            cache.promises.forEach((resolve) => resolve(cache.lightmap));
-            delete cache.promises;
-          });
-      } else if (cache.loading) {
-        cache.promises.push(resolve);
-      } else {
-        resolve(cache.lightmap);
       }
     });
   }
