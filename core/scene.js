@@ -214,6 +214,7 @@ class Scene extends ThreeScene {
             climbing.isFalling && climbing.fallSpeed < -5
           )
         ) {
+          let grip;
           climbing.aux.setFromObject(physics);
           climbables.flat().find((mesh) => {
             if (mesh.isInstancedMesh) {
@@ -227,7 +228,7 @@ class Scene extends ThreeScene {
                   .copy(mesh.collision)
                   .applyMatrix4(mesh.collision.aux.matrix);
                 if (mesh.collision.aux.box.intersectsBox(climbing.aux)) {
-                  climbing.grip[index] = { mesh, index: i };
+                  grip = { mesh, index: i };
                   return true;
                 }
               }
@@ -237,11 +238,15 @@ class Scene extends ThreeScene {
               mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
             }
             if (mesh.collision.intersectsBox(climbing.aux)) {
-              climbing.grip[index] = { mesh };
+              grip = { mesh };
               return true;
             }
             return false;
           });
+          if (grip) {
+            climbing.grip[index] = grip;
+            controller.pulse(0.3, 25);
+          }
         }
         if (climbing.grip[index]) {
           if (gripUp || triggerUp || player.destination) {

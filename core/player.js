@@ -61,6 +61,16 @@ class Player extends Group {
       controller.physics = controllerPhysics.clone();
       controller.pointer = new Pointer();
       controller.add(controller.pointer);
+      controller.pulse = (intensity, duration) => {
+        if (
+          !controller.gamepad
+          || !controller.gamepad.hapticActuators
+          || !controller.gamepad.hapticActuators.length
+        ) {
+          return;
+        }
+        controller.gamepad.hapticActuators[0].pulse(intensity, duration);
+      };
       controller.raycaster = new Raycaster();
       controller.raycaster.far = 8;
       controller.worldspace = {

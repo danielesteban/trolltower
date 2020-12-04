@@ -58,15 +58,22 @@ class Gameplay extends Group {
     this.add(ground);
 
     if (platforms.length) {
+      const movement = new Vector3();
       this.platforms = new Platforms({
         onMovement: () => {
+          let activeHands = 0;
+          movement.set(0, 0, 0);
           climbing.grip.forEach((grip) => {
             if (!grip || grip.mesh !== this.platforms) {
               return;
             }
-            delete player.destination;
-            player.move(this.platforms.getMovement(grip.index));
+            movement.add(this.platforms.getMovement(grip.index));
+            activeHands += 1;
           });
+          if (activeHands) {
+            delete player.destination;
+            player.move(movement.divideScalar(activeHands).negate());
+          }
         },
         platforms,
       });

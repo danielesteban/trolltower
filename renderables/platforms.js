@@ -61,7 +61,7 @@ class Platforms extends InstancedMesh {
       auxVector
         .copy(origin)
         .addScaledVector(direction, Math.sin(serverTime * speed));
-      movement.subVectors(auxVector, movement);
+      movement.subVectors(movement, auxVector);
       auxMatrix.setPosition(auxVector);
       this.setMatrixAt(i, auxMatrix);
     });
