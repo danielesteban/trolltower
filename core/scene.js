@@ -15,9 +15,8 @@ class Scene extends ThreeScene {
     this.climbing = {
       activeHands: 0,
       aux: new Box3(),
-      hands: [false, false],
+      grip: [false, false],
       movement: new Vector3(),
-      points: [new Vector3(), new Vector3()],
     };
 
     this.locomotion = Scene.locomotions.teleport;
@@ -194,25 +193,26 @@ class Scene extends ThreeScene {
       }
       if (climbables.length) {
         if (
-          !climbing.hands[index]
+          !climbing.grip[index]
           && (gripDown || triggerDown)
           && !(
             climbing.isFalling && climbing.fallSpeed < -5
           )
         ) {
           climbing.aux.setFromObject(physics);
-          if (climbables.flat().find((mesh) => {
-            if (!mesh.collision) {
-              mesh.collision = (new Box3()).setFromObject(mesh);
+          const grip = climbables.flat().find((mesh) => {
+            if (!mesh.collision || mesh.collisionAutoUpdate) {
+              mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
             }
             return mesh.collision.intersectsBox(climbing.aux);
-          })) {
-            climbing.hands[index] = true;
+          });
+          if (grip) {
+            climbing.grip[index] = grip;
           }
         }
-        if (climbing.hands[index]) {
+        if (climbing.grip[index]) {
           if (gripUp || triggerUp || player.destination) {
-            climbing.hands[index] = false;
+            climbing.grip[index] = false;
             if (!climbing.activeHands) {
               climbing.isFalling = true;
               climbing.fallSpeed = 0;
@@ -243,20 +243,19 @@ class Scene extends ThreeScene {
         climbing.movement.divideScalar(climbing.activeHands).negate()
       );
     } else if (climbing.isFalling && !player.destination) {
-      climbing.points[0].set(
+      climbing.aux.min.set(
         player.head.position.x - 0.2,
         player.position.y,
         player.head.position.z - 0.2
       );
-      climbing.points[1].set(
+      climbing.aux.max.set(
         player.head.position.x + 0.2,
         Math.max(player.position.y + 0.25, player.head.position.y - 0.25),
         player.head.position.z + 0.2
       );
-      climbing.aux.setFromPoints(climbing.points);
       if (!translocables.flat().find((mesh) => {
-        if (!mesh.collision) {
-          mesh.collision = (new Box3()).setFromObject(mesh);
+        if (!mesh.collision || mesh.collisionAutoUpdate) {
+          mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
         }
         return mesh.collision.intersectsBox(climbing.aux);
       })) {

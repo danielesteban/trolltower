@@ -12,12 +12,14 @@ import Clouds from '../renderables/clouds.js';
 import Elevator from '../renderables/elevator.js';
 import Explosion from '../renderables/explosion.js';
 import Ground from '../renderables/ground.js';
+import Platform from '../renderables/platform.js';
 import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
   constructor({
     elevators,
     groundColor,
+    platforms = [],
     rocketOrigin,
     scene,
     offset,
@@ -51,6 +53,29 @@ class Gameplay extends Group {
 
     const ground = new Ground(256, 256, groundColor);
     this.add(ground);
+
+    this.platforms = platforms.map(({
+      direction,
+      origin,
+      size,
+      speed,
+    }) => {
+      const platform = new Platform({
+        direction,
+        onMovement: (movement) => {
+          if (climbing.grip.find((mesh) => mesh === platform)) {
+            delete player.destination;
+            player.move(movement);
+          }
+        },
+        origin,
+        size,
+        speed,
+      });
+      climbables.push(platform);
+      this.add(platform);
+      return platform;
+    });
 
     this.player = player;
 
@@ -211,8 +236,8 @@ class Gameplay extends Group {
       if (
         !climbing.isFalling && !player.destination && player.head.position.distanceTo(point) < 1
       ) {
-        climbing.hands[0] = false;
-        climbing.hands[1] = false;
+        climbing.grip[0] = false;
+        climbing.grip[1] = false;
         climbing.isFalling = true;
         climbing.fallSpeed = 0;
       }
@@ -316,6 +341,7 @@ class Gameplay extends Group {
       explosions,
       peers,
       physics,
+      platforms,
       player,
       rocket,
     } = this;
@@ -325,6 +351,7 @@ class Gameplay extends Group {
     if (peers) {
       peers.animate(animation);
     }
+    platforms.forEach((platform) => platform.animate(animation));
     rocket.animate(animation);
     let isOnElevator = false;
     elevators.forEach((elevator) => {
