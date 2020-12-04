@@ -1,11 +1,13 @@
-import { InstancedMesh, Matrix4, Vector3 } from '../core/three.js';
+import {
+  DynamicDrawUsage,
+  InstancedMesh,
+  Matrix4,
+  Vector3,
+} from '../core/three.js';
 import Box from './box.js';
 
 class Platforms extends InstancedMesh {
-  constructor({
-    platforms,
-    onMovement,
-  }) {
+  constructor({ onMovement, platforms }) {
     if (!Box.geometry) {
       Box.setupGeometry();
     }
@@ -15,6 +17,7 @@ class Platforms extends InstancedMesh {
     super(Box.geometry, Box.material, platforms.length);
     this.auxMatrix = new Matrix4();
     this.auxVector = new Vector3();
+    this.instanceMatrix.setUsage(DynamicDrawUsage);
     this.onMovement = onMovement;
     this.platforms = platforms.map(({
       direction,
@@ -34,7 +37,6 @@ class Platforms extends InstancedMesh {
       return {
         direction,
         movement: new Vector3(),
-        onMovement,
         origin,
         speed,
       };
@@ -62,9 +64,16 @@ class Platforms extends InstancedMesh {
       movement.subVectors(auxVector, movement);
       auxMatrix.setPosition(auxVector);
       this.setMatrixAt(i, auxMatrix);
-      onMovement(i, movement);
     });
     this.instanceMatrix.needsUpdate = true;
+    if (onMovement()) {
+      onMovement();
+    }
+  }
+
+  getMovement(index) {
+    const { platforms } = this;
+    return platforms[index].movement;
   }
 }
 

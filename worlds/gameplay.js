@@ -58,15 +58,16 @@ class Gameplay extends Group {
     this.add(ground);
 
     this.platforms = new Platforms({
-      platforms,
-      onMovement: (platform, movement) => {
-        if (climbing.grip.find(({ mesh, index }) => (
-          mesh === this.platforms && index === platform
-        ))) {
+      onMovement: () => {
+        climbing.grip.forEach((grip) => {
+          if (!grip || grip.mesh !== this.platforms) {
+            return;
+          }
           delete player.destination;
-          player.move(movement);
-        }
+          player.move(this.platforms.getMovement(grip.index));
+        });
       },
+      platforms,
     });
     climbables.push(this.platforms);
     this.add(this.platforms);
