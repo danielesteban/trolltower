@@ -36,6 +36,7 @@ class Effect extends Mesh {
     this.material.opacity = 0;
     this.matrixAutoUpdate = false;
     this.visible = false;
+    this.renderOrder = 1;
   }
 
   animate({ delta }) {

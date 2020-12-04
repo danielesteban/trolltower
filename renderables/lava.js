@@ -14,16 +14,10 @@ import {
 
 class Lava extends Mesh {
   static setupGeometry() {
-    Lava.geometry = new PlaneBufferGeometry(32, 32);
+    Lava.geometry = new PlaneBufferGeometry(1, 1);
     Lava.geometry.deleteAttribute('normal');
     Lava.geometry.rotateX(Math.PI * -0.5);
     Lava.geometry.translate(0, 0.5, 0);
-    Lava.geometry.physics = {
-      shape: 'box',
-      width: Lava.geometry.parameters.width,
-      height: 1,
-      depth: Lava.geometry.parameters.height,
-    };
   }
 
   static setupMaterial() {
@@ -80,7 +74,17 @@ class Lava extends Mesh {
     Lava.material.map = texture;
   }
 
-  constructor({ sfx }) {
+  static scaleTexture(width, depth) {
+    if (!Lava.material) {
+      Lava.setupMaterial();
+    }
+    const { material } = Lava;
+    material.map.repeat.set(width / 32, depth / 32);
+    material.map.updateMatrix();
+    material.uniforms.uvTransform.value.copy(material.map.matrix);
+  }
+
+  constructor({ width, depth, sfx }) {
     if (!Lava.geometry) {
       Lava.setupGeometry();
     }
@@ -91,6 +95,14 @@ class Lava extends Mesh {
       Lava.geometry,
       Lava.material
     );
+    this.physics = {
+      shape: 'box',
+      width,
+      height: 1,
+      depth,
+    };
+    Lava.scaleTexture(width, depth);
+    this.scale.set(width, 1, depth);
     sfx.load('sounds/lava.ogg')
       .then((sound) => {
         sound.setLoop(true);

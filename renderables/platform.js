@@ -15,11 +15,11 @@ class Platform extends Box {
   }) {
     super(width, height, depth);
     this.collisionAutoUpdate = true;
-    this.position.copy(origin);
-    this.direction = direction;
+    this.direction = direction.multiplyScalar(0.5);
+    this.position.copy(origin).add(direction);
     this.movement = new Vector3();
     this.onMovement = onMovement;
-    this.origin = origin;
+    this.origin = this.position.clone();
     this.speed = speed;
   }
 

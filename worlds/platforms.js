@@ -7,36 +7,47 @@ import Gameplay from './gameplay.js';
 import Effect from '../renderables/effect.js';
 import Lava from '../renderables/lava.js';
 
-class Well extends Gameplay {
+class Platforms extends Gameplay {
   constructor(scene, { offset, instance }) {
     super({
       elevators: [
-        { position: new Vector3(13.25, 33.5, 0), rotation: Math.PI * -0.5 },
-        { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },
+        { position: new Vector3(0, 2.5, -31.75), rotation: 0 },
+        { position: new Vector3(0, 2.5, 31.75), rotation: Math.PI },
       ],
-      rocketOrigin: new Vector3(0, 7.25, 0),
+      platforms: [...Array(38)].map((v, i) => {
+        const j = i > 18 ? i + 2 : i;
+        return {
+          origin: new Vector3(6 * (j % 2 === 0 ? 1 : -1), 5.5, -29.25 + j * 1.5),
+          direction: (new Vector3(12, 0, 0)).multiplyScalar(j % 2 === 0 ? -1 : 1),
+          speed: 0.5,
+          size: {
+            width: 1,
+            height: 0.1,
+            depth: 1,
+          },
+        };
+      }),
+      rocketOrigin: new Vector3(0, 2.75, 0),
       scene,
       offset,
-      room: `Well-${instance}`,
-      terrainPhysics: 'models/wellTerrainPhysics.json',
-      towerPhysics: 'models/wellPhysics.json',
+      room: `Platforms-${instance}`,
+      terrainPhysics: 'models/platformsPhysics.json',
     });
 
-    const { ambient, models, sfx } = scene;
+    const { models, sfx } = scene;
 
-    ambient.set('sounds/forest.ogg');
-    scene.background = new Color(0x0A0A11);
+    scene.background = new Color(0x220011);
     scene.fog = new FogExp2(scene.background.getHex(), 0.02);
 
     const burning = new Effect({ anchor: this.player.head, color: 0xFF0000 });
     this.add(burning);
     this.burning = burning;
 
-    const lava = new Lava({ width: 32, depth: 32, sfx });
+    const lava = new Lava({ width: 16, depth: 64, sfx });
     this.add(lava);
     this.lava = lava;
 
-    models.load('models/well.glb')
+    models.load('models/platforms.glb')
       .then((model) => {
         model.scale.setScalar(0.5);
         this.add(model);
@@ -79,4 +90,4 @@ class Well extends Gameplay {
   }
 }
 
-export default Well;
+export default Platforms;

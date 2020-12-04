@@ -303,8 +303,8 @@ class Gameplay extends Group {
           this.add(this.spheres);
         }),
       models.physics('models/rocketPhysics.json', 0.25),
-      models.physics(terrainPhysics, 0.5),
-      models.physics(towerPhysics, 0.5),
+      terrainPhysics ? models.physics(terrainPhysics, 0.5) : Promise.resolve(),
+      towerPhysics ? models.physics(towerPhysics, 0.5) : Promise.resolve(),
     ])
       .then(([/* physics */, rocketPhysics, terrainPhysics, towerPhysics]) => {
         translocables.push(ground);
@@ -321,17 +321,21 @@ class Gameplay extends Group {
           });
         });
         this.physics.addMesh(rocket, 0, { isKinematic: true });
-        terrainPhysics.forEach((box) => {
-          translocables.push(box);
-          this.physics.addMesh(box);
-          this.add(box);
-        });
-        towerPhysics.forEach((box) => {
-          climbables.push(box);
-          translocables.push(box);
-          this.physics.addMesh(box);
-          this.add(box);
-        });
+        if (terrainPhysics) {
+          terrainPhysics.forEach((box) => {
+            translocables.push(box);
+            this.physics.addMesh(box);
+            this.add(box);
+          });
+        }
+        if (towerPhysics) {
+          towerPhysics.forEach((box) => {
+            climbables.push(box);
+            translocables.push(box);
+            this.physics.addMesh(box);
+            this.add(box);
+          });
+        }
       });
   }
 
