@@ -52,7 +52,7 @@ class Button extends Mesh {
     Button.material = new MeshBasicMaterial({ map: texture });
   }
 
-  constructor({ position }) {
+  constructor({ position, rotation }) {
     if (!Button.geometry) {
       Button.setupGeometry();
     }
@@ -64,19 +64,23 @@ class Button extends Mesh {
       Button.material
     );
     this.position.copy(position);
+    this.rotation.y = rotation;
     this.initialPosition = position.clone();
+    this.initialRotation = rotation;
+    this.updateMatrixWorld();
 
     this.slider = {
       type: 'slider',
       limits: {
-        linear: { lower: 0, upper: 0.0625 },
+        linear: { lower: -1, upper: 0 },
       },
-      position: new Vector3(0, 0, 0.125),
+      position,
       rotation: (new Quaternion()).setFromAxisAngle(new Vector3(0, 1, 0), Math.PI * -0.5),
     };
 
     this.trigger = new Group();
-    this.trigger.position.copy(position).add(new Vector3(0, 0, 0.15));
+    this.localToWorld(this.trigger.position.set(0, 0, -0.2));
+    this.trigger.rotation.y = rotation;
     this.trigger.updateMatrixWorld();
     this.trigger.physics = {
       shape: 'box',

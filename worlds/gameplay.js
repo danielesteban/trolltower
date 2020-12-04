@@ -21,6 +21,7 @@ class Gameplay extends Group {
     groundColor,
     platforms = [],
     rocketOrigin,
+    rocketRotation,
     scene,
     offset,
     room,
@@ -124,7 +125,7 @@ class Gameplay extends Group {
     const rocket = new Group();
     rocket.position.copy(rocketOrigin);
     rocket.initialPosition = rocket.position.clone();
-    rocket.rotation.set(0, Math.PI, 0);
+    rocket.rotation.set(0, rocketRotation, 0);
     rocket.updateMatrixWorld();
     rocket.bounds = (
       new Box3(new Vector3(-0.75, 0, -0.75), new Vector3(0.75, 4, 0.75))
@@ -169,7 +170,10 @@ class Gameplay extends Group {
       }
     };
 
-    const button = new Button({ position: rocketOrigin.clone().add(new Vector3(0, 2, 0.625)) });
+    const button = new Button({
+      position: rocket.localToWorld(new Vector3(0, 2, -0.6)),
+      rotation: rocketRotation,
+    });
     button.trigger.onContact = ({ mesh }) => {
       if (rocket.enabled || mesh !== button) {
         return;
@@ -200,6 +204,7 @@ class Gameplay extends Group {
       rocket.position.copy(rocket.initialPosition);
       rocket.updateMatrixWorld();
       button.position.copy(button.initialPosition);
+      button.rotation.y = button.initialRotation;
       this.add(button);
       this.physics.addMesh(button, 1);
       button.constraint = this.physics.addConstraint(button, button.slider);
@@ -289,8 +294,8 @@ class Gameplay extends Group {
           this.physics.addMesh(ground);
 
           this.physics.addMesh(button, 1);
-          this.physics.addMesh(button.trigger, 0, { isTrigger: true });
           button.constraint = this.physics.addConstraint(button, button.slider);
+          this.physics.addMesh(button.trigger, 0, { isTrigger: true });
 
           this.sphere = 0;
           this.spheres = new Spheres({ count: 50 });

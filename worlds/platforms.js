@@ -28,6 +28,7 @@ class Platforms extends Gameplay {
         };
       }),
       rocketOrigin: new Vector3(0, 2.75, 0),
+      rocketRotation: Math.PI * 0.5,
       scene,
       offset,
       room: `Platforms-${instance}`,

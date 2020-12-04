@@ -15,6 +15,7 @@ class Well extends Gameplay {
         { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },
       ],
       rocketOrigin: new Vector3(0, 7.25, 0),
+      rocketRotation: Math.PI,
       scene,
       offset,
       room: `Well-${instance}`,

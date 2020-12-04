@@ -31,6 +31,7 @@ class Tower extends Gameplay {
       elevators,
       groundColor: 0x05bb7c,
       rocketOrigin: new Vector3(0, 31.25, 0),
+      rocketRotation: Math.PI,
       scene,
       offset,
       room: `Tower-${instance}`,
