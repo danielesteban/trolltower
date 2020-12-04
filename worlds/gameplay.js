@@ -357,7 +357,6 @@ class Gameplay extends Group {
       peers.animate(animation);
     }
     if (platforms) {
-      console.log('hey')
       platforms.animate(animation);
     }
     rocket.animate(animation);
