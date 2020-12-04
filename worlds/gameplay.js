@@ -12,7 +12,7 @@ import Clouds from '../renderables/clouds.js';
 import Elevator from '../renderables/elevator.js';
 import Explosion from '../renderables/explosion.js';
 import Ground from '../renderables/ground.js';
-import Platform from '../renderables/platform.js';
+import Platforms from '../renderables/platforms.js';
 import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
@@ -57,28 +57,19 @@ class Gameplay extends Group {
     const ground = new Ground(256, 256, groundColor);
     this.add(ground);
 
-    this.platforms = platforms.map(({
-      direction,
-      origin,
-      size,
-      speed,
-    }) => {
-      const platform = new Platform({
-        direction,
-        onMovement: (movement) => {
-          if (climbing.grip.find((mesh) => mesh === platform)) {
-            delete player.destination;
-            player.move(movement);
-          }
-        },
-        origin,
-        size,
-        speed,
-      });
-      climbables.push(platform);
-      this.add(platform);
-      return platform;
+    this.platforms = new Platforms({
+      platforms,
+      onMovement: (platform, movement) => {
+        if (climbing.grip.find(({ mesh, index }) => (
+          mesh === this.platforms && index === platform
+        ))) {
+          delete player.destination;
+          player.move(movement);
+        }
+      },
     });
+    climbables.push(this.platforms);
+    this.add(this.platforms);
 
     this.player = player;
 
@@ -362,7 +353,7 @@ class Gameplay extends Group {
     if (peers) {
       peers.animate(animation);
     }
-    platforms.forEach((platform) => platform.animate(animation));
+    platforms.animate(animation);
     rocket.animate(animation);
     let isOnElevator = false;
     elevators.forEach((elevator) => {

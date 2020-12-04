@@ -1,4 +1,9 @@
-import { Box3, Scene as ThreeScene, Vector3 } from './three.js';
+import {
+  Box3,
+  Matrix4,
+  Scene as ThreeScene,
+  Vector3,
+} from './three.js';
 import Ambient from './ambient.js';
 import { AmmoPhysics } from './ammo.js';
 import CurveCast from './curvecast.js';
@@ -210,15 +215,33 @@ class Scene extends ThreeScene {
           )
         ) {
           climbing.aux.setFromObject(physics);
-          const grip = climbables.flat().find((mesh) => {
+          climbables.flat().find((mesh) => {
+            if (mesh.isInstancedMesh) {
+              if (!mesh.collision) {
+                mesh.collision = (new Box3()).setFromObject(mesh);
+                mesh.collision.aux = { box: new Box3(), matrix: new Matrix4() };
+              }
+              for (let i = 0, l = mesh.count; i < l; i += 1) {
+                mesh.getMatrixAt(i, mesh.collision.aux.matrix);
+                mesh.collision.aux.box
+                  .copy(mesh.collision)
+                  .applyMatrix4(mesh.collision.aux.matrix);
+                if (mesh.collision.aux.box.intersectsBox(climbing.aux)) {
+                  climbing.grip[index] = { mesh, index: i };
+                  return true;
+                }
+              }
+              return false;
+            }
             if (!mesh.collision || mesh.collisionAutoUpdate) {
               mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
             }
-            return mesh.collision.intersectsBox(climbing.aux);
+            if (mesh.collision.intersectsBox(climbing.aux)) {
+              climbing.grip[index] = { mesh };
+              return true;
+            }
+            return false;
           });
-          if (grip) {
-            climbing.grip[index] = grip;
-          }
         }
         if (climbing.grip[index]) {
           if (gripUp || triggerUp || player.destination) {
