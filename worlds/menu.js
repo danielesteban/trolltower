@@ -23,6 +23,7 @@ class Menu extends Group {
         name: 'Platforms Test',
         background: '#550011',
         foreground: '#fff',
+        fontSize: 28,
       },
       Tower: {
         name: 'The Tower',
@@ -48,8 +49,7 @@ class Menu extends Group {
       elevator.position.set(7.75, 0, -6 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
-      const { background, foreground } = worlds[world];
-      elevator.display = new Display({ background, foreground });
+      elevator.display = new Display(worlds[world]);
       elevator.display.position.set(0, 13, 0.125);
       elevator.add(elevator.display);
       elevator.updateMatrixWorld();

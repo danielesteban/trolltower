@@ -12,7 +12,11 @@ class Display extends Mesh {
     Display.geometry.deleteAttribute('normal');
   }
 
-  constructor({ background, foreground }) {
+  constructor({
+    background,
+    fontSize = 32,
+    foreground,
+  }) {
     if (!Display.geometry) {
       Display.setupGeometry();
     }
@@ -36,7 +40,7 @@ class Display extends Mesh {
     ctx.fillStyle = foreground;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '700 32px monospace';
+    ctx.font = `700 ${fontSize}px monospace`;
     this.colors = { background, foreground };
     this.renderer = renderer;
     this.value = 'Loading...';
