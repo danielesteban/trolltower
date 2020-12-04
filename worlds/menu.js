@@ -18,18 +18,38 @@ class Menu extends Group {
     this.add(new Controls());
     this.add(new Title());
 
+    const worlds = {
+      Platforms: {
+        name: 'Platforms Test',
+        background: '#550011',
+        foreground: '#fff',
+      },
+      Tower: {
+        name: 'The Tower',
+        background: '#114466',
+        foreground: '#fff',
+      },
+      Well: {
+        name: 'The Well',
+        background: '#112233',
+        foreground: '#fff',
+      },
+    };
+
     const elevators = [
       'Tower',
       'Tower',
       'Well',
       'Well',
+      'Platforms',
     ].map((world, i) => {
       const elevator = new Elevator({ models, sfx });
       elevator.world = world;
-      elevator.position.set(7.75, 0, -4.5 + i * 3);
+      elevator.position.set(7.75, 0, -6 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
-      elevator.display = new Display({ isDark: world === 'Well' });
+      const { background, foreground } = worlds[world];
+      elevator.display = new Display({ background, foreground });
       elevator.display.position.set(0, 13, 0.125);
       elevator.add(elevator.display);
       elevator.updateMatrixWorld();
@@ -57,7 +77,7 @@ class Menu extends Group {
                 break;
               }
             }
-            elevator.display.set(`The ${elevator.world} - S${instance < 10 ? '0' : ''}${instance} - ${peers}/${maxPeers}`);
+            elevator.display.set(`${worlds[elevator.world].name} - S${instance < 10 ? '0' : ''}${instance} - ${peers}/${maxPeers}`);
             elevator.isOpen = peers < maxPeers;
             elevator.onClose = elevator.isOpen ? () => (
               scene.load(elevator.world, { offset: elevator.getOffset(player), instance })

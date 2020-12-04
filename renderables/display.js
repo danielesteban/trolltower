@@ -12,7 +12,7 @@ class Display extends Mesh {
     Display.geometry.deleteAttribute('normal');
   }
 
-  constructor({ isDark }) {
+  constructor({ background, foreground }) {
     if (!Display.geometry) {
       Display.setupGeometry();
     }
@@ -25,8 +25,6 @@ class Display extends Mesh {
       Display.geometry,
       new MeshBasicMaterial({ map: texture })
     );
-    const background = isDark ? '#000' : '#fff';
-    const foreground = isDark ? '#fff' : '#000';
     const ctx = renderer.getContext('2d');
     ctx.fillStyle = background;
     ctx.fillRect(0, 0, renderer.width, renderer.height);
