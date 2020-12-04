@@ -57,20 +57,22 @@ class Gameplay extends Group {
     const ground = new Ground(256, 256, groundColor);
     this.add(ground);
 
-    this.platforms = new Platforms({
-      onMovement: () => {
-        climbing.grip.forEach((grip) => {
-          if (!grip || grip.mesh !== this.platforms) {
-            return;
-          }
-          delete player.destination;
-          player.move(this.platforms.getMovement(grip.index));
-        });
-      },
-      platforms,
-    });
-    climbables.push(this.platforms);
-    this.add(this.platforms);
+    if (platforms.length) {
+      this.platforms = new Platforms({
+        onMovement: () => {
+          climbing.grip.forEach((grip) => {
+            if (!grip || grip.mesh !== this.platforms) {
+              return;
+            }
+            delete player.destination;
+            player.move(this.platforms.getMovement(grip.index));
+          });
+        },
+        platforms,
+      });
+      climbables.push(this.platforms);
+      this.add(this.platforms);
+    }
 
     this.player = player;
 
@@ -354,7 +356,10 @@ class Gameplay extends Group {
     if (peers) {
       peers.animate(animation);
     }
-    platforms.animate(animation);
+    if (platforms) {
+      console.log('hey')
+      platforms.animate(animation);
+    }
     rocket.animate(animation);
     let isOnElevator = false;
     elevators.forEach((elevator) => {
