@@ -38,6 +38,8 @@ class Gameplay extends Group {
       translocables,
     } = scene;
 
+    scene.syncTimeOffset('http://localhost:3000/');
+
     this.birds = new Birds({ anchor: player });
     this.add(this.birds);
 

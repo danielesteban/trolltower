@@ -9,7 +9,15 @@ import SFX from './sfx.js';
 // A VR scene base class
 
 class Scene extends ThreeScene {
-  constructor({ renderer: { camera, dom, renderer }, worlds }) {
+  constructor({
+    renderer: {
+      camera,
+      clock,
+      dom,
+      renderer,
+    },
+    worlds,
+  }) {
     super();
 
     this.climbing = {
@@ -18,6 +26,8 @@ class Scene extends ThreeScene {
       grip: [false, false],
       movement: new Vector3(),
     };
+
+    this.clock = clock;
 
     this.locomotion = Scene.locomotions.teleport;
     this.locomotions = Scene.locomotions;
@@ -281,6 +291,26 @@ class Scene extends ThreeScene {
     if (world && world.resumeAudio) {
       world.resumeAudio();
     }
+  }
+
+  syncTimeOffset(server) {
+    const { clock } = this;
+    const fetchTimeOffset = (deltas = []) => (
+      fetch(`${server}sync`)
+        .then((res) => res.text())
+        .then((server) => {
+          const client = Date.now();
+          deltas.push(parseInt(server, 10) - client);
+          if (deltas.length < 10) {
+            return fetchTimeOffset(deltas);
+          }
+          return deltas.reduce((sum, delta) => (sum + delta), 0) / deltas.length;
+        })
+    );
+    fetchTimeOffset()
+      .then((offset) => {
+        clock.serverTimeOffset = offset;
+      });
   }
 }
 

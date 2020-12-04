@@ -23,7 +23,7 @@ class Platform extends Box {
     this.speed = speed;
   }
 
-  animate({ time }) {
+  animate({ serverTime }) {
     const {
       direction,
       movement,
@@ -35,7 +35,7 @@ class Platform extends Box {
     movement.copy(position);
     position
       .copy(origin)
-      .addScaledVector(direction, Math.sin(time * speed));
+      .addScaledVector(direction, Math.sin(serverTime * speed));
     movement.subVectors(position, movement);
     onMovement(movement);
   }

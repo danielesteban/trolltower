@@ -79,5 +79,9 @@ if (stats) {
   ));
 }
 
+server.get('/sync', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
+  res.end(`${Date.now()}`)
+));
+
 server.use((req, res) => res.status(404).end());
 server.listen(process.env.PORT || 3000);

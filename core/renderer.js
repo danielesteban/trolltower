@@ -12,6 +12,8 @@ class Renderer {
   constructor({ dom, worlds }) {
     // Initialize state
     this.clock = new Clock();
+    this.clock.localStartTime = Date.now();
+    this.clock.serverTimeOffset = 0;
     this.fps = {
       count: 0,
       lastTick: this.clock.oldTime / 1000,
@@ -93,6 +95,7 @@ class Renderer {
     renderer.animation = {
       delta: Math.min(clock.getDelta(), 1 / 30),
       time: clock.oldTime / 1000,
+      serverTime: ((clock.localStartTime + clock.serverTimeOffset) / 1000) + clock.elapsedTime,
     };
 
     // Render scene
