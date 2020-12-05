@@ -4,22 +4,20 @@ import {
   Matrix4,
   Vector3,
 } from '../core/three.js';
-import Box from './box.js';
 
 class Platforms extends InstancedMesh {
-  constructor({ onMovement, platforms }) {
-    if (!Box.geometry) {
-      Box.setupGeometry();
-    }
-    if (!Box.material) {
-      Box.setupMaterial();
-    }
-    super(Box.geometry, Box.material, platforms.length);
+  constructor({
+    geometry,
+    material,
+    onMovement,
+    instances,
+  }) {
+    super(geometry, material, instances.length);
     this.auxMatrix = new Matrix4();
     this.auxVector = new Vector3();
     this.instanceMatrix.setUsage(DynamicDrawUsage);
     this.onMovement = onMovement;
-    this.platforms = platforms.map(({
+    this.platforms = instances.map(({
       direction,
       origin,
       size: {

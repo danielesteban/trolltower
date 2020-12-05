@@ -14,19 +14,22 @@ class Platforms extends Gameplay {
         { position: new Vector3(0, 2.5, -31.75), rotation: 0 },
         { position: new Vector3(0, 2.5, 31.75), rotation: Math.PI },
       ],
-      platforms: [...Array(38)].map((v, i) => {
-        const j = i > 18 ? i + 2 : i;
-        return {
-          origin: new Vector3(6 * (j % 2 === 0 ? 1 : -1), 5.25, -29.25 + j * 1.5),
-          direction: (new Vector3(12, 0, 0)).multiplyScalar(j % 2 === 0 ? -1 : 1),
-          speed: 0.5,
-          size: {
-            width: 1,
-            height: 0.1,
-            depth: 1,
-          },
-        };
-      }),
+      platforms: {
+        instances: [...Array(38)].map((v, i) => {
+          const j = i > 18 ? i + 2 : i;
+          return {
+            origin: new Vector3(6 * (j % 2 === 0 ? 1 : -1), 5.25, -29.25 + j * 1.5),
+            direction: (new Vector3(12, 0, 0)).multiplyScalar(j % 2 === 0 ? -1 : 1),
+            speed: 0.5,
+            size: {
+              width: 1,
+              height: 0.1,
+              depth: 1,
+            },
+          };
+        }),
+        model: 'models/platform.glb',
+      },
       rocketOrigin: new Vector3(0, 2.75, 0),
       rocketRotation: Math.PI * 0.5,
       scene,

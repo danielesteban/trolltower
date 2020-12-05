@@ -259,6 +259,7 @@ class Player extends Group {
         worldspace.position.add(offset);
       }
     });
+    delete this.destination;
   }
 
   rotate(radians) {
@@ -299,6 +300,7 @@ class Player extends Group {
       ));
     head.position.x = point.x;
     head.position.z = point.z;
+    delete this.destination;
   }
 
   translocate(point) {
