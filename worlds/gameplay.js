@@ -40,8 +40,6 @@ class Gameplay extends Group {
       translocables,
     } = scene;
 
-    scene.syncTimeOffset('https://rooms.trolltower.app/');
-
     this.birds = new Birds({ anchor: player });
     this.add(this.birds);
 
@@ -373,6 +371,9 @@ class Gameplay extends Group {
           });
         }
       });
+
+    this.syncTimeOffset = () => setTimeout(() => scene.syncTimeOffset('https://rooms.trolltower.app/'), 0);
+    this.syncTimeOffset();
   }
 
   onAnimationTick(animation) {
@@ -454,6 +455,7 @@ class Gameplay extends Group {
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
     player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
     this.spawn = elevator;
+    this.syncTimeOffset();
   }
 
   spawnSphere(position, impulse) {
