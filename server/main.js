@@ -42,7 +42,14 @@ server.ws('/:room', (client, req) => {
     [id, instance] = `${key}`.split('-');
     id = `${id}`;
     instance = parseInt(`${instance}`, 10);
-    if (allowedRooms && allowedRooms.indexOf(id) === -1) {
+    if (
+      Number.isNaN(instance)
+      || instance <= 0
+      || (
+        allowedRooms
+        && allowedRooms.indexOf(id) === -1
+      )
+    ) {
       client.send(JSON.stringify({
         type: 'ERROR',
         data: 'Room not allowed.',
