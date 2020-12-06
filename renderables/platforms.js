@@ -52,6 +52,11 @@ class Platforms extends InstancedMesh {
     });
   }
 
+  dispose() {
+    const { geometry } = this;
+    geometry.dispose();
+  }
+
   animate({ serverTime }) {
     const {
       auxMatrix,

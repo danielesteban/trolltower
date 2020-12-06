@@ -475,9 +475,12 @@ class Gameplay extends Group {
   }
 
   onUnload() {
-    const { birds, peers } = this;
+    const { birds, peers, platforms } = this;
     birds.dispose();
     peers.disconnect();
+    if (platforms) {
+      platforms.dispose();
+    }
   }
 }
 
