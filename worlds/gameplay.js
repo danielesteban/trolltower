@@ -191,7 +191,6 @@ class Gameplay extends Group {
       rocket.speed = 0;
       rocket.tick = 0;
       rocket.timer = 10;
-
       this.physics.removeConstraint(button.constraint);
       this.physics.removeMesh(button);
       rocket.worldToLocal(button.position.copy(button.initialPosition));
@@ -306,6 +305,37 @@ class Gameplay extends Group {
         this.add(this.spheres);
       });
 
+    if (platforms) {
+      Promise.all([
+        scene.getPhysics(),
+        models.load(platforms.model),
+      ])
+        .then(([/* physics */, { children: [{ children: [model] }] }]) => {
+          const movement = new Vector3();
+          this.platforms = new Platforms({
+            instances: platforms.instances,
+            model,
+            onMovement: () => {
+              let activeHands = 0;
+              movement.set(0, 0, 0);
+              climbing.grip.forEach((grip) => {
+                if (!grip || grip.mesh !== this.platforms) {
+                  return;
+                }
+                movement.add(this.platforms.getMovement(grip.index));
+                activeHands += 1;
+              });
+              if (activeHands) {
+                player.move(movement.divideScalar(activeHands).negate());
+              }
+            },
+          });
+          climbables.push(this.platforms);
+          this.add(this.platforms);
+          this.physics.addMesh(this.platforms, 0, { isKinematic: true });
+        });
+    }
+
     Promise.all([
       scene.getPhysics(),
       models.physics('models/rocketPhysics.json', 0.25),
@@ -343,37 +373,6 @@ class Gameplay extends Group {
           });
         }
       });
-
-    if (platforms) {
-      Promise.all([
-        scene.getPhysics(),
-        models.load(platforms.model),
-      ])
-        .then(([/* physics */, { children: [{ children: [model] }] }]) => {
-          const movement = new Vector3();
-          this.platforms = new Platforms({
-            instances: platforms.instances,
-            model,
-            onMovement: () => {
-              let activeHands = 0;
-              movement.set(0, 0, 0);
-              climbing.grip.forEach((grip) => {
-                if (!grip || grip.mesh !== this.platforms) {
-                  return;
-                }
-                movement.add(this.platforms.getMovement(grip.index));
-                activeHands += 1;
-              });
-              if (activeHands) {
-                player.move(movement.divideScalar(activeHands).negate());
-              }
-            },
-          });
-          climbables.push(this.platforms);
-          this.add(this.platforms);
-          this.physics.addMesh(this.platforms, 0, { isKinematic: true });
-        });
-    }
 
     this.syncTimeOffset = () => setTimeout(() => scene.syncTimeOffset('https://rooms.trolltower.app/'), 0);
     this.syncTimeOffset();
