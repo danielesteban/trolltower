@@ -4,7 +4,6 @@ import {
   Vector3,
 } from '../core/three.js';
 import Gameplay from './gameplay.js';
-import Effect from '../renderables/effect.js';
 import Lava from '../renderables/lava.js';
 
 class Well extends Gameplay {
@@ -29,10 +28,6 @@ class Well extends Gameplay {
     scene.background = new Color(0x0A0A11);
     scene.fog = new FogExp2(scene.background.getHex(), 0.02);
 
-    const burning = new Effect({ anchor: this.player.head, color: 0xFF0000 });
-    this.add(burning);
-    this.burning = burning;
-
     const lava = new Lava({ width: 32, depth: 32, sfx });
     this.add(lava);
     this.lava = lava;
@@ -52,20 +47,12 @@ class Well extends Gameplay {
   }
 
   onAnimationTick(animation) {
-    const { burning, player } = this;
+    const { effects, player } = this;
     super.onAnimationTick(animation);
-    if (burning.visible || player.head.position.y < 3) {
-      if (burning.animate(animation)) {
-        this.respawn();
-      }
+    if (player.head.position.y < 3) {
+      effects.burning.trigger();
     }
     Lava.animate(animation);
-  }
-
-  respawn() {
-    const { burning } = this;
-    super.respawn();
-    burning.reset();
   }
 
   resumeAudio() {

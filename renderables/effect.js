@@ -20,7 +20,12 @@ class Effect extends Mesh {
     });
   }
 
-  constructor({ anchor, color }) {
+  constructor({
+    anchor,
+    color,
+    onEnd,
+    onTrigger,
+  }) {
     if (!Effect.geometry) {
       Effect.setupGeometry();
     }
@@ -32,6 +37,8 @@ class Effect extends Mesh {
       Effect.material.clone()
     );
     this.anchor = anchor;
+    this.onEnd = onEnd;
+    this.onTrigger = onTrigger;
     this.material.color.setHex(color);
     this.material.opacity = 0;
     this.matrixAutoUpdate = false;
@@ -43,23 +50,40 @@ class Effect extends Mesh {
     const {
       anchor,
       material,
+      onEnd,
       position,
+      visible,
     } = this;
+    if (!visible) {
+      return;
+    }
     position.copy(anchor.position);
-    this.visible = true;
     this.updateMatrix();
     this.updateMatrixWorld();
-    material.opacity = Math.min(material.opacity + delta * 0.5, 1);
-    if (material.opacity === 1) {
-      return true;
+    material.opacity = Math.min(material.opacity + delta * 0.5, 0.9);
+    if (material.opacity === 0.9) {
+      this.reset();
+      if (onEnd) {
+        onEnd();
+      }
     }
-    return false;
   }
 
   reset() {
     const { material } = this;
     material.opacity = 0;
     this.visible = false;
+  }
+
+  trigger() {
+    const { onTrigger, visible } = this;
+    if (visible) {
+      return;
+    }
+    this.visible = true;
+    if (onTrigger) {
+      onTrigger();
+    }
   }
 }
 

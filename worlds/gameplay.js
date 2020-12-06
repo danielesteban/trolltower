@@ -9,6 +9,7 @@ import Peers from '../core/peers.js';
 import Birds from '../renderables/birds.js';
 import Button from '../renderables/button.js';
 import Clouds from '../renderables/clouds.js';
+import Effect from '../renderables/effect.js';
 import Elevator from '../renderables/elevator.js';
 import Explosion from '../renderables/explosion.js';
 import Ground from '../renderables/ground.js';
@@ -46,6 +47,30 @@ class Gameplay extends Group {
 
     this.clouds = new Clouds();
     this.add(this.clouds);
+
+    this.effects = [
+      {
+        id: 'burning',
+        color: 0xFF0000,
+        onEnd: () => this.respawn(),
+      },
+    ].reduce((effects, {
+      id,
+      color,
+      onEnd,
+      onTrigger,
+    }) => {
+      const effect = new Effect({
+        anchor: player.head,
+        color,
+        onEnd,
+        onTrigger,
+      });
+      this.add(effect);
+      effects[id] = effect;
+      effects.list.push(effect);
+      return effects;
+    }, { list: [] });
 
     const explosions = [...Array(50)].map(() => {
       const explosion = new Explosion({ sfx });
@@ -362,8 +387,9 @@ class Gameplay extends Group {
   onAnimationTick(animation) {
     const {
       birds,
-      elevators,
       clouds,
+      effects,
+      elevators,
       explosions,
       peers,
       physics,
@@ -373,6 +399,7 @@ class Gameplay extends Group {
     } = this;
     birds.animate(animation);
     clouds.animate(animation);
+    effects.list.forEach((effect) => effect.animate(animation));
     explosions.forEach((explosion) => explosion.animate(animation));
     if (peers) {
       peers.animate(animation);
@@ -430,7 +457,8 @@ class Gameplay extends Group {
   }
 
   respawn() {
-    const { elevators, player } = this;
+    const { effects, elevators, player } = this;
+    effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
     player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
