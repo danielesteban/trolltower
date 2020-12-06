@@ -124,11 +124,8 @@ class Gameplay extends Group {
         .then(({ children: [{ children: [model] }] }) => {
           const movement = new Vector3();
           this.platforms = new Platforms({
-            model,
-            width: platforms.width,
-            height: platforms.height,
-            depth: platforms.depth,
             instances: platforms.instances,
+            model,
             onMovement: () => {
               let activeHands = 0;
               movement.set(0, 0, 0);

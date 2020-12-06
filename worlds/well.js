@@ -13,6 +13,23 @@ class Well extends Gameplay {
         { position: new Vector3(13.25, 33.5, 0), rotation: Math.PI * -0.5 },
         { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },
       ],
+      platforms: {
+        instances: [...Array(8)].map((v, i) => {
+          const angle = ((Math.PI * 2) / 8) * i;
+          const dist = 4;
+          const origin = new Vector3(
+            Math.cos(angle) * dist,
+            10.05,
+            Math.sin(angle) * dist
+          );
+          return {
+            origin,
+            direction: origin.clone().sub(new Vector3(0, 6, 0)).normalize().multiplyScalar(9),
+            speed: i % 2 === 0 ? 0.5 : 0.75,
+          };
+        }),
+        model: 'models/platform.glb',
+      },
       rocketOrigin: new Vector3(0, 7.25, 0),
       rocketRotation: Math.PI,
       scene,

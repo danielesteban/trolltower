@@ -10,9 +10,6 @@ class Platforms extends InstancedMesh {
     model,
     onMovement,
     instances,
-    width,
-    height,
-    depth,
   }) {
     const geometry = model.geometry.clone();
     geometry.computeBoundingBox();
@@ -25,9 +22,9 @@ class Platforms extends InstancedMesh {
       size.z * -0.5
     );
     geometry.scale(
-      (1 / size.x) * width,
-      (1 / size.y) * height,
-      (1 / size.z) * depth
+      1 / size.x,
+      0.1 / size.y,
+      1 / size.z
     );
     super(geometry, model.material, instances.length);
     this.auxMatrix = new Matrix4();
