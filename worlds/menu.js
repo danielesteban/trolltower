@@ -19,8 +19,8 @@ class Menu extends Group {
     this.add(new Title());
 
     const worlds = {
-      Platforms: {
-        name: 'Platforms Test',
+      Pit: {
+        name: 'The Lava Pit',
         background: '#550011',
         foreground: '#fff',
         fontSize: 28,
@@ -39,14 +39,12 @@ class Menu extends Group {
 
     const elevators = [
       'Tower',
-      'Tower',
       'Well',
-      'Well',
-      'Platforms',
+      'Pit',
     ].map((world, i) => {
       const elevator = new Elevator({ models, sfx });
       elevator.world = world;
-      elevator.position.set(7.75, 0, -6 + i * 3);
+      elevator.position.set(7.75, 0, -3 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
       elevator.display = new Display(worlds[world]);

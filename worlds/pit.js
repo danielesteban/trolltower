@@ -6,7 +6,7 @@ import {
 import Gameplay from './gameplay.js';
 import Lava from '../renderables/lava.js';
 
-class Platforms extends Gameplay {
+class Pit extends Gameplay {
   constructor(scene, { offset, instance }) {
     super({
       elevators: [
@@ -32,8 +32,8 @@ class Platforms extends Gameplay {
       rocketRotation: Math.PI * 0.5,
       scene,
       offset,
-      room: `Platforms-${instance}`,
-      terrainPhysics: 'models/platformsPhysics.json',
+      room: `Pit-${instance}`,
+      terrainPhysics: 'models/pitPhysics.json',
     });
 
     const { models, sfx } = scene;
@@ -45,7 +45,7 @@ class Platforms extends Gameplay {
     this.add(lava);
     this.lava = lava;
 
-    models.load('models/platforms.glb')
+    models.load('models/pit.glb')
       .then((model) => {
         model.scale.setScalar(0.5);
         this.add(model);
@@ -80,4 +80,4 @@ class Platforms extends Gameplay {
   }
 }
 
-export default Platforms;
+export default Pit;
