@@ -16,13 +16,18 @@ class Platforms extends Gameplay {
       platforms: {
         instances: [...Array(38)].map((v, i) => {
           const j = i > 18 ? i + 2 : i;
+          const s = Math.floor(i / 2) % 2 === 0 ? 2 : 1;
           return {
-            origin: new Vector3(6 * (j % 2 === 0 ? 1 : -1), 5.25, -29.25 + j * 1.5),
+            origin: new Vector3(
+              6 * (j % 2 === 0 ? 1 : -1),
+              5.25 + (s === 2 ? 0.05 : 0),
+              -29.25 + j * 1.5
+            ),
             direction: (new Vector3(12, 0, 0)).multiplyScalar(j % 2 === 0 ? -1 : 1),
             speed: 0.5,
             size: {
-              width: 1,
-              height: 0.1,
+              width: 1 * s,
+              height: 0.1 * s,
               depth: 1,
             },
           };
