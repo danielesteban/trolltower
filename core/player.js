@@ -292,14 +292,18 @@ class Player extends Group {
 
   teleport(point) {
     const { head, position } = this;
+    const headY = head.position.y - position.y;
     position
       .subVectors(point, position.set(
         head.position.x - position.x,
         0,
         head.position.z - position.z
       ));
-    head.position.x = point.x;
-    head.position.z = point.z;
+    head.position.set(
+      point.x,
+      point.y + headY,
+      point.z
+    );
     delete this.destination;
   }
 

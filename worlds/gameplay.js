@@ -124,22 +124,13 @@ class Gameplay extends Group {
     if (platforms) {
       models.load(platforms.model)
         .then(({ children: [{ children: [model] }] }) => {
-          const geometry = model.geometry.clone();
-          geometry.computeBoundingBox();
-          const size = geometry.boundingBox.getSize(new Vector3());
-          const position = geometry.getAttribute('position');
-          position.array = new Float32Array(position.array);
-          geometry.translate(
-            size.x * -0.5,
-            size.y * -0.5 - geometry.boundingBox.min.y,
-            size.z * -0.5
-          );
-          geometry.scale(1 / size.x, 1 / size.y, 1 / size.z);
           const movement = new Vector3();
           this.platforms = new Platforms({
+            model,
+            width: platforms.width,
+            height: platforms.height,
+            depth: platforms.depth,
             instances: platforms.instances,
-            geometry,
-            material: model.material,
             onMovement: () => {
               let activeHands = 0;
               movement.set(0, 0, 0);

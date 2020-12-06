@@ -7,12 +7,29 @@ import {
 
 class Platforms extends InstancedMesh {
   constructor({
-    geometry,
-    material,
+    model,
     onMovement,
     instances,
+    width,
+    height,
+    depth,
   }) {
-    super(geometry, material, instances.length);
+    const geometry = model.geometry.clone();
+    geometry.computeBoundingBox();
+    const size = geometry.boundingBox.getSize(new Vector3());
+    const position = geometry.getAttribute('position');
+    position.array = new Float32Array(position.array);
+    geometry.translate(
+      size.x * -0.5,
+      size.y * -0.5 - geometry.boundingBox.min.y,
+      size.z * -0.5
+    );
+    geometry.scale(
+      (1 / size.x) * width,
+      (1 / size.y) * height,
+      (1 / size.z) * depth
+    );
+    super(geometry, model.material, instances.length);
     this.auxMatrix = new Matrix4();
     this.auxVector = new Vector3();
     this.instanceMatrix.setUsage(DynamicDrawUsage);
@@ -20,16 +37,10 @@ class Platforms extends InstancedMesh {
     this.platforms = instances.map(({
       direction,
       origin,
-      size: {
-        width,
-        height,
-        depth,
-      },
       speed,
     }, i) => {
       direction.multiplyScalar(0.5);
       origin.add(direction);
-      this.auxMatrix.makeScale(width, height, depth);
       this.auxMatrix.setPosition(origin);
       this.setMatrixAt(i, this.auxMatrix);
       return {

@@ -16,23 +16,21 @@ class Platforms extends Gameplay {
       platforms: {
         instances: [...Array(38)].map((v, i) => {
           const j = i > 18 ? i + 2 : i;
-          const s = Math.floor(i / 2) % 2 === 0 ? 2 : 1;
+          const s = Math.floor(j / 2) % 2 === 0 ? 2 : 1;
           return {
             origin: new Vector3(
               6 * (j % 2 === 0 ? 1 : -1),
-              5.25 + (s === 2 ? 0.05 : 0) + Math.sin(i * 4) * 0.2,
+              5.25 + (s === 2 ? 0.05 : 0) + Math.sin(j * 4) * 0.1,
               -29.25 + j * 1.5
             ),
             direction: (new Vector3(12, 0, 0)).multiplyScalar(j % 2 === 0 ? -1 : 1),
             speed: 0.5,
-            size: {
-              width: 1 * s,
-              height: 0.1 * s,
-              depth: 1,
-            },
           };
         }),
         model: 'models/platform.glb',
+        width: 1,
+        height: 0.1,
+        depth: 1,
       },
       rocketOrigin: new Vector3(0, 2.75, 0),
       rocketRotation: Math.PI * 0.5,
