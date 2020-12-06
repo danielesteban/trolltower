@@ -94,7 +94,10 @@ class Menu extends Group {
               instance += 1;
               const key = `${elevator.world}-${instance}`;
               peers = rooms[key] || 0;
-              if ((peers + this.peers.peers.length) < maxPeers && !map.has(key)) {
+              if (
+                !map.has(key)
+                && (peers + Math.min(this.peers.peers.length, maxPeers - 1)) < maxPeers
+              ) {
                 map.set(key, true);
                 break;
               }
