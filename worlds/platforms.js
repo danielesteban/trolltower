@@ -20,7 +20,7 @@ class Platforms extends Gameplay {
           return {
             origin: new Vector3(
               6 * (j % 2 === 0 ? 1 : -1),
-              5.25 + (s === 2 ? 0.05 : 0),
+              5.25 + (s === 2 ? 0.05 : 0) + Math.sin(i * 4) * 0.2,
               -29.25 + j * 1.5
             ),
             direction: (new Vector3(12, 0, 0)).multiplyScalar(j % 2 === 0 ? -1 : 1),
