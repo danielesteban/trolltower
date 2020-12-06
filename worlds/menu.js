@@ -37,7 +37,7 @@ class Menu extends Group {
       },
     };
 
-    const elevators = [
+    this.elevators = [
       'Tower',
       'Well',
       'Pit',
@@ -55,14 +55,38 @@ class Menu extends Group {
       this.add(elevator);
       return elevator;
     });
-    this.elevators = elevators;
 
-    const updateElevators = () => (
+    const origin = new Vector3(0, 0.5, 0);
+    if (offset) {
+      const [world] = room.split('-');
+      const elevator = this.elevators.find(({ world: id }) => world === id);
+      elevator.localToWorld(origin.copy(offset.position));
+      player.teleport(origin);
+      player.rotate(elevator.rotation.y - offset.rotation);
+    } else {
+      player.rotation.y = 0;
+      player.teleport(origin);
+    }
+
+    this.peers = new Peers({
+      player,
+      onJoin: () => (
+        updateElevators()
+      ),
+      room: 'wss://rooms.trolltower.app/Menu',
+    });
+    this.add(this.peers);
+
+    let updatingElevators;
+    const updateElevators = () => {
+      if (updatingElevators) {
+        return;
+      }
       fetch('https://rooms.trolltower.app/peers')
         .then((res) => res.json())
         .then((rooms) => {
           const map = new Map();
-          elevators.forEach((elevator) => {
+          this.elevators.forEach((elevator) => {
             const maxPeers = 16;
             let instance = 0;
             let peers;
@@ -70,7 +94,7 @@ class Menu extends Group {
               instance += 1;
               const key = `${elevator.world}-${instance}`;
               peers = rooms[key] || 0;
-              if (peers < maxPeers && !map.has(key)) {
+              if ((peers + this.peers.peers.length) < maxPeers && !map.has(key)) {
                 map.set(key, true);
                 break;
               }
@@ -82,28 +106,13 @@ class Menu extends Group {
             ) : undefined;
           });
         })
-    );
+        .finally(() => {
+          updatingElevators = false;
+        });
+    };
 
     this.updateElevatorsInterval = setInterval(updateElevators, 10000);
     updateElevators();
-
-    const origin = new Vector3(0, 0.5, 0);
-    if (offset) {
-      const [world] = room.split('-');
-      const elevator = elevators.find(({ world: id }) => world === id);
-      elevator.localToWorld(origin.copy(offset.position));
-      player.teleport(origin);
-      player.rotate(elevator.rotation.y - offset.rotation);
-    } else {
-      player.rotation.y = 0;
-      player.teleport(origin);
-    }
-
-    this.peers = new Peers({
-      player,
-      room: 'wss://rooms.trolltower.app/Menu',
-    });
-    this.add(this.peers);
 
     const doors = [...Array(2)].map((v, i) => {
       const orientation = i === 0 ? 1 : -1;
