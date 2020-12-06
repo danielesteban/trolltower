@@ -12,6 +12,7 @@ class Platforms extends InstancedMesh {
     instances,
   }) {
     const geometry = model.geometry.clone();
+    const scale = 0.1;
     geometry.computeBoundingBox();
     const size = geometry.boundingBox.getSize(new Vector3());
     const position = geometry.getAttribute('position');
@@ -21,16 +22,18 @@ class Platforms extends InstancedMesh {
       size.y * -0.5 - geometry.boundingBox.min.y,
       size.z * -0.5
     );
-    geometry.scale(
-      1 / size.x,
-      0.1 / size.y,
-      1 / size.z
-    );
+    geometry.scale(scale, scale, scale);
     super(geometry, model.material, instances.length);
     this.auxMatrix = new Matrix4();
     this.auxVector = new Vector3();
     this.instanceMatrix.setUsage(DynamicDrawUsage);
     this.onMovement = onMovement;
+    this.physics = {
+      shape: 'box',
+      width: size.x * scale,
+      height: size.y * scale,
+      depth: size.z * scale,
+    };
     this.platforms = instances.map(({
       direction,
       origin,

@@ -119,33 +119,6 @@ class Gameplay extends Group {
       }
     }
 
-    if (platforms) {
-      models.load(platforms.model)
-        .then(({ children: [{ children: [model] }] }) => {
-          const movement = new Vector3();
-          this.platforms = new Platforms({
-            instances: platforms.instances,
-            model,
-            onMovement: () => {
-              let activeHands = 0;
-              movement.set(0, 0, 0);
-              climbing.grip.forEach((grip) => {
-                if (!grip || grip.mesh !== this.platforms) {
-                  return;
-                }
-                movement.add(this.platforms.getMovement(grip.index));
-                activeHands += 1;
-              });
-              if (activeHands) {
-                player.move(movement.divideScalar(activeHands).negate());
-              }
-            },
-          });
-          climbables.push(this.platforms);
-          this.add(this.platforms);
-        });
-    }
-
     const color = new Color();
     const vector = new Vector3();
 
@@ -245,6 +218,12 @@ class Gameplay extends Group {
       this.respawn();
     };
 
+    models.load('models/rocket.glb')
+      .then((model) => {
+        model.scale.setScalar(0.25);
+        rocket.add(model);
+      });
+
     const onContact = ({ mesh, index, point }) => {
       if (mesh !== this.spheres) {
         return;
@@ -276,63 +255,59 @@ class Gameplay extends Group {
       }
     };
 
-    models.load('models/rocket.glb')
-      .then((model) => {
-        model.scale.setScalar(0.25);
-        rocket.add(model);
+    scene.getPhysics()
+      .then((physics) => {
+        this.physics = physics;
+        this.peers = new Peers({
+          onJoin: (peer) => {
+            peer.head.onContact = onContact;
+            this.physics.addMesh(peer.head, 0, { isKinematic: true, isTrigger: true });
+          },
+          onLeave: (peer) => {
+            this.physics.removeMesh(peer.head);
+          },
+          onPeerMessage: ({ message: { buffer } }) => {
+            if (!buffer) {
+              return;
+            }
+            if (buffer.byteLength === 1) {
+              rocket.trigger();
+            } else if (buffer.byteLength === 24) {
+              const [x, y, z, ix, iy, iz] = new Float32Array(buffer);
+              this.spawnSphere({ x, y, z }, { x: ix, y: iy, z: iz });
+            }
+          },
+          player,
+          room: `wss://rooms.trolltower.app/${room}`,
+        });
+        this.add(this.peers);
+
+        player.head.physics.onContact = onContact;
+        this.physics.addMesh(player.head.physics, 0, { isKinematic: true, isTrigger: true });
+
+        player.controllers.forEach((controller) => {
+          this.physics.addMesh(controller.physics, 0, { isKinematic: true });
+        });
+
+        this.physics.addMesh(ground);
+
+        this.physics.addMesh(button, 1);
+        button.constraint = this.physics.addConstraint(button, button.slider);
+        this.physics.addMesh(button.trigger, 0, { isTrigger: true });
+
+        this.sphere = 0;
+        this.spheres = new Spheres({ count: 50 });
+        const matrix = new Matrix4();
+        for (let i = 0; i < this.spheres.count; i += 1) {
+          matrix.setPosition(0, 0.2, -1000 - i);
+          this.spheres.setMatrixAt(i, matrix);
+        }
+        this.physics.addMesh(this.spheres, 1, { isSleeping: true });
+        this.add(this.spheres);
       });
 
     Promise.all([
-      scene.getPhysics()
-        .then((physics) => {
-          this.physics = physics;
-          this.peers = new Peers({
-            onJoin: (peer) => {
-              peer.head.onContact = onContact;
-              this.physics.addMesh(peer.head, 0, { isKinematic: true, isTrigger: true });
-            },
-            onLeave: (peer) => {
-              this.physics.removeMesh(peer.head);
-            },
-            onPeerMessage: ({ message: { buffer } }) => {
-              if (!buffer) {
-                return;
-              }
-              if (buffer.byteLength === 1) {
-                rocket.trigger();
-              } else if (buffer.byteLength === 24) {
-                const [x, y, z, ix, iy, iz] = new Float32Array(buffer);
-                this.spawnSphere({ x, y, z }, { x: ix, y: iy, z: iz });
-              }
-            },
-            player,
-            room: `wss://rooms.trolltower.app/${room}`,
-          });
-          this.add(this.peers);
-
-          player.head.physics.onContact = onContact;
-          this.physics.addMesh(player.head.physics, 0, { isKinematic: true, isTrigger: true });
-
-          player.controllers.forEach((controller) => {
-            this.physics.addMesh(controller.physics, 0, { isKinematic: true });
-          });
-
-          this.physics.addMesh(ground);
-
-          this.physics.addMesh(button, 1);
-          button.constraint = this.physics.addConstraint(button, button.slider);
-          this.physics.addMesh(button.trigger, 0, { isTrigger: true });
-
-          this.sphere = 0;
-          this.spheres = new Spheres({ count: 50 });
-          const matrix = new Matrix4();
-          for (let i = 0; i < this.spheres.count; i += 1) {
-            matrix.setPosition(0, 0.2, -1000 - i);
-            this.spheres.setMatrixAt(i, matrix);
-          }
-          this.physics.addMesh(this.spheres, 1, { isSleeping: true });
-          this.add(this.spheres);
-        }),
+      scene.getPhysics(),
       models.physics('models/rocketPhysics.json', 0.25),
       terrainPhysics ? models.physics(terrainPhysics, 0.5) : Promise.resolve(),
       towerPhysics ? models.physics(towerPhysics, 0.5) : Promise.resolve(),
@@ -368,6 +343,37 @@ class Gameplay extends Group {
           });
         }
       });
+
+    if (platforms) {
+      Promise.all([
+        scene.getPhysics(),
+        models.load(platforms.model),
+      ])
+        .then(([/* physics */, { children: [{ children: [model] }] }]) => {
+          const movement = new Vector3();
+          this.platforms = new Platforms({
+            instances: platforms.instances,
+            model,
+            onMovement: () => {
+              let activeHands = 0;
+              movement.set(0, 0, 0);
+              climbing.grip.forEach((grip) => {
+                if (!grip || grip.mesh !== this.platforms) {
+                  return;
+                }
+                movement.add(this.platforms.getMovement(grip.index));
+                activeHands += 1;
+              });
+              if (activeHands) {
+                player.move(movement.divideScalar(activeHands).negate());
+              }
+            },
+          });
+          climbables.push(this.platforms);
+          this.add(this.platforms);
+          this.physics.addMesh(this.platforms, 0, { isKinematic: true });
+        });
+    }
 
     this.syncTimeOffset = () => setTimeout(() => scene.syncTimeOffset('https://rooms.trolltower.app/'), 0);
     this.syncTimeOffset();
