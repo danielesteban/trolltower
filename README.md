@@ -1,7 +1,7 @@
 [TrollTower](https://trolltower.app/)
 ==
 
-[![screenshot](screenshot.jpg)](https://trolltower.app/)
+[![screenshot](screenshot.png)](https://trolltower.app/)
 
 > A webxr multiplayer game
 
