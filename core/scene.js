@@ -243,7 +243,7 @@ class Scene extends ThreeScene {
           });
           if (grip) {
             climbing.grip[index] = grip;
-            controller.pulse(0.3, 25);
+            controller.pulse(0.3, 30);
           }
         }
         if (climbing.grip[index]) {
