@@ -107,6 +107,7 @@ class Peers extends Group {
 
   connectToPeer({ id, initiator = false }) {
     const {
+      onJoin,
       player,
       server,
       userMedia,
@@ -129,8 +130,8 @@ class Peers extends Group {
     ));
     connection.on('track', peer.onTrack.bind(peer));
     this.add(peer);
-    if (this.onJoin) {
-      this.onJoin(peer);
+    if (onJoin) {
+      onJoin(peer);
     }
     return peer;
   }
@@ -258,10 +259,13 @@ class Peers extends Group {
   }
 
   reset() {
-    const { peers } = this;
+    const { peers, onLeave } = this;
     peers.forEach((peer) => {
       this.remove(peer);
       peer.dispose();
+      if (onLeave) {
+        onLeave(peer);
+      }
     });
     peers.length = 0;
   }

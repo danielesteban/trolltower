@@ -87,6 +87,12 @@ class Scene extends ThreeScene {
       translocables,
       worlds,
     } = this;
+    if (this.world) {
+      if (this.world.onUnload) {
+        this.world.onUnload();
+      }
+      this.remove(this.world);
+    }
     this.background = null;
     this.fog = null;
     this.locomotion = Scene.locomotions.teleport;
@@ -98,12 +104,6 @@ class Scene extends ThreeScene {
     climbables.length = 0;
     pointables.length = 0;
     translocables.length = 0;
-    if (this.world) {
-      if (this.world.onUnload) {
-        this.world.onUnload();
-      }
-      this.remove(this.world);
-    }
     this.world = new worlds[world](this, options);
     if (this.world.resumeAudio && player.head.context.state === 'running') {
       this.world.resumeAudio();
