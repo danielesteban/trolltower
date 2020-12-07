@@ -316,18 +316,18 @@ class Gameplay extends Group {
             instances: platforms.instances,
             model,
             onMovement: () => {
-              let activeHands = 0;
-              movement.set(0, 0, 0);
-              climbing.grip.forEach((grip) => {
-                if (!grip || grip.mesh !== this.platforms) {
-                  return;
-                }
-                movement.add(this.platforms.getMovement(grip.index));
-                activeHands += 1;
-              });
-              if (activeHands) {
-                player.move(movement.divideScalar(activeHands).negate());
+              const grip = climbing.grip
+                .map((grip, hand) => ({ ...(grip || {}), hand }))
+                .filter(({ mesh }) => (mesh === this.platforms))
+                .sort(({ time: a }, { time: b }) => (b - a));
+
+              if (!grip.length) {
+                return;
               }
+              if (grip.length > 1 && grip[0].index !== grip[1].index) {
+                climbing.grip[grip[1].hand] = false;
+              }
+              player.move(movement.copy(this.platforms.getMovement(grip[0].index)).negate());
             },
           });
           climbables.push(this.platforms);

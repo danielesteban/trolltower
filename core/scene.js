@@ -226,7 +226,7 @@ class Scene extends ThreeScene {
                   .copy(mesh.collision)
                   .applyMatrix4(mesh.collision.aux.matrix);
                 if (mesh.collision.aux.box.intersectsBox(climbing.aux)) {
-                  grip = { mesh, index: i };
+                  grip = { mesh, index: i, time: animation.time };
                   return true;
                 }
               }
@@ -236,7 +236,7 @@ class Scene extends ThreeScene {
               mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
             }
             if (mesh.collision.intersectsBox(climbing.aux)) {
-              grip = { mesh };
+              grip = { mesh, time: animation.time };
               return true;
             }
             return false;
