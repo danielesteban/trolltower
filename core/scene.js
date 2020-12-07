@@ -140,8 +140,6 @@ class Scene extends ThreeScene {
           rightwards,
           rightwardsDown,
           secondaryDown,
-          triggerDown,
-          triggerUp,
         },
         hand,
         marker,
@@ -208,8 +206,8 @@ class Scene extends ThreeScene {
       }
       if (climbables.length) {
         if (
-          !climbing.grip[index]
-          && (gripDown || triggerDown)
+          gripDown
+          && !climbing.grip[index]
           && !(
             climbing.isFalling && climbing.fallSpeed < -5
           )
@@ -249,7 +247,7 @@ class Scene extends ThreeScene {
           }
         }
         if (climbing.grip[index]) {
-          if (gripUp || triggerUp || player.destination) {
+          if (gripUp || player.destination) {
             climbing.grip[index] = false;
             if (!climbing.activeHands) {
               climbing.isFalling = true;
