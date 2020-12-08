@@ -52,8 +52,6 @@ class Tower extends Gameplay {
       towerPhysics: 'models/towerPhysics.json',
     });
 
-    this.player.teleport(new Vector3(0, 32, 0))
-
     const { ambient, models, translocables } = scene;
     ambient.set('sounds/sea.ogg');
     scene.background = new Color(0x336688);
