@@ -44,6 +44,7 @@ class Gameplay extends Group {
       translocables,
     } = scene;
 
+    this.climbing = climbing;
     this.player = player;
 
     this.birds = new Birds({ anchor: player });
@@ -474,6 +475,11 @@ class Gameplay extends Group {
     const isOnGeometry = this.isOnGeometry();
     if (isOnGeometry) {
       effects.suffocating.trigger();
+      player.controllers.forEach((controller) => {
+        if (controller.hand) {
+          controller.pulse(0.6, 10);
+        }
+      });
     } else if (effects.suffocating.visible) {
       effects.suffocating.reset();
     }
@@ -535,11 +541,15 @@ class Gameplay extends Group {
   respawn() {
     const {
       ammo,
+      climbing,
       effects,
       elevators,
       player,
     } = this;
     ammo.reload();
+    climbing.grip[0] = false;
+    climbing.grip[1] = false;
+    climbing.isFalling = false;
     effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
