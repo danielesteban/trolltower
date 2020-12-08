@@ -96,7 +96,7 @@ class Pickups extends InstancedMesh {
     }
     instance.visible = false;
     instance.scale = 0;
-    instance.timer = 10;
+    instance.timer = 30;
     if (onPick) {
       onPick(instance.position);
     }
