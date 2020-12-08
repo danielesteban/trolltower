@@ -89,7 +89,7 @@ class Counter extends Mesh {
     ctx.fillRect(0, 0, renderer.width, renderer.height);
     ctx.fillStyle = foregrounds[color];
     ctx.fill(icon);
-    ctx.fillText(`${value}`, renderer.width * 0.5 + 20, renderer.height * 0.5 + 1);
+    ctx.fillText(`${value < 10 ? '0' : ''}${value}`, renderer.width * 0.5 + 20, renderer.height * 0.5 + 1);
     material.map.needsUpdate = true;
   }
 }
