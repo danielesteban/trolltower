@@ -9,7 +9,7 @@ import {
 
 class Counter extends Mesh {
   static setupGeometry() {
-    Counter.geometry = new PlaneBufferGeometry(0.1, 0.05);
+    Counter.geometry = new PlaneBufferGeometry(0.075, 0.05);
     Counter.geometry.deleteAttribute('normal');
   }
 
@@ -22,7 +22,7 @@ class Counter extends Mesh {
       Counter.setupGeometry();
     }
     const renderer = document.createElement('canvas');
-    renderer.width = 128;
+    renderer.width = 96;
     renderer.height = 64;
     const texture = new CanvasTexture(renderer);
     texture.anisotropy = 8;

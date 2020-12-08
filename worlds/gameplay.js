@@ -131,7 +131,7 @@ class Gameplay extends Group {
             icon: 'circle',
             value: initialAmmo,
           });
-          counter.position.set(0.06 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
+          counter.position.set(0.045 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
           player.attach(counter, hand);
           return counter;
         }),
