@@ -30,14 +30,29 @@ class Tower extends Gameplay {
     super({
       elevators,
       groundColor: 0x05bb7c,
+      pickups: {
+        instances: [
+          ...[...Array(8)].map((v, i) => {
+            const angle = i * Math.PI * 0.5;
+            const dist = Math.floor(i / 4) === 0 ? 3.5 : 2.5;
+            return new Vector3(
+              Math.cos(angle) * dist,
+              Math.floor(i / 4) === 0 ? 32.5 : 18,
+              Math.sin(angle) * dist
+            );
+          }),
+        ],
+        model: 'models/barrel.glb',
+      },
       rocketOrigin: new Vector3(0, 31.25, 0),
-      rocketRotation: Math.PI,
       scene,
       offset,
       room: `Tower-${instance}`,
       terrainPhysics: 'models/towerIslandPhysics.json',
       towerPhysics: 'models/towerPhysics.json',
     });
+
+    this.player.teleport(new Vector3(0, 32, 0))
 
     const { ambient, models, translocables } = scene;
     ambient.set('sounds/sea.ogg');

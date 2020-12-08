@@ -43,7 +43,6 @@ class Well extends Gameplay {
         model: 'models/barrel.glb',
       },
       rocketOrigin: new Vector3(0, 7.25, 0),
-      rocketRotation: Math.PI,
       scene,
       offset,
       room: `Well-${instance}`,

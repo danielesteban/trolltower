@@ -21,16 +21,17 @@ import Spheres from '../renderables/spheres.js';
 class Gameplay extends Group {
   constructor({
     elevators,
-    groundColor,
-    platforms,
-    pickups,
+    defaultAmmo = 10,
+    groundColor = 0,
+    platforms = false,
+    pickups = false,
     rocketOrigin,
-    rocketRotation,
+    rocketRotation = Math.PI,
     scene,
     offset,
     room,
-    terrainPhysics,
-    towerPhysics,
+    terrainPhysics = false,
+    towerPhysics = false,
   }) {
     super();
 
@@ -121,36 +122,33 @@ class Gameplay extends Group {
       }
     }
 
-    if (pickups) {
-      const initialAmmo = 10;
-      this.ammo = {
-        count: initialAmmo,
-        counters: ['left', 'right'].map((hand) => {
-          const counter = new Counter({
-            handedness: hand,
-            icon: 'circle',
-            value: initialAmmo,
-          });
-          counter.position.set(0.045 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
-          player.attach(counter, hand);
-          return counter;
-        }),
-        use() {
-          if (this.count === 0) {
-            return;
-          }
-          this.count -= 1;
-          this.update();
-        },
-        reload() {
-          this.count += initialAmmo;
-          this.update();
-        },
-        update() {
-          this.counters.forEach((counter) => counter.set(this.count));
-        },
-      };
-    }
+    this.ammo = {
+      count: defaultAmmo,
+      counters: ['left', 'right'].map((hand) => {
+        const counter = new Counter({
+          handedness: hand,
+          icon: 'circle',
+          value: defaultAmmo,
+        });
+        counter.position.set(0.045 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
+        player.attach(counter, hand);
+        return counter;
+      }),
+      use() {
+        if (this.count === 0) {
+          return;
+        }
+        this.count -= 1;
+        this.update();
+      },
+      reload() {
+        this.count = defaultAmmo;
+        this.update();
+      },
+      update() {
+        this.counters.forEach((counter) => counter.set(this.count));
+      },
+    };
 
     const color = new Color();
     const vector = new Vector3();
@@ -468,7 +466,7 @@ class Gameplay extends Group {
         }
       }
     });
-    if (!physics || isOnElevator || (ammo && ammo.count === 0)) {
+    if (ammo.count === 0 || !physics || isOnElevator) {
       return;
     }
     [
@@ -480,7 +478,13 @@ class Gameplay extends Group {
       isDesktop,
       raycaster,
     }) => {
-      if ((hand && buttons.triggerDown) || (isDesktop && buttons.primaryDown)) {
+      if (
+        ammo.count > 0
+        && (
+          (hand && buttons.triggerDown)
+          || (isDesktop && buttons.primaryDown)
+        )
+      ) {
         const { origin, direction } = raycaster.ray;
         const position = origin
           .clone()
@@ -491,9 +495,7 @@ class Gameplay extends Group {
           position.x, position.y, position.z,
           impulse.x, impulse.y, impulse.z,
         ]).buffer));
-        if (ammo) {
-          ammo.use();
-        }
+        ammo.use();
       }
     });
   }
@@ -505,9 +507,7 @@ class Gameplay extends Group {
       elevators,
       player,
     } = this;
-    if (ammo) {
-      ammo.reload();
-    }
+    ammo.reload();
     effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
@@ -553,9 +553,7 @@ class Gameplay extends Group {
       platforms,
       pickups,
     } = this;
-    if (ammo) {
-      ammo.counters.forEach((counter) => counter.dispose());
-    }
+    ammo.counters.forEach((counter) => counter.dispose());
     birds.dispose();
     peers.disconnect();
     if (platforms) {
