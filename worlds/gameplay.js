@@ -9,11 +9,13 @@ import Peers from '../core/peers.js';
 import Birds from '../renderables/birds.js';
 import Button from '../renderables/button.js';
 import Clouds from '../renderables/clouds.js';
+import Counter from '../renderables/counter.js';
 import Effect from '../renderables/effect.js';
 import Elevator from '../renderables/elevator.js';
 import Explosion from '../renderables/explosion.js';
 import Ground from '../renderables/ground.js';
 import Platforms from '../renderables/platforms.js';
+import Pickups from '../renderables/pickups.js';
 import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
@@ -21,6 +23,7 @@ class Gameplay extends Group {
     elevators,
     groundColor,
     platforms,
+    pickups,
     rocketOrigin,
     rocketRotation,
     scene,
@@ -39,6 +42,8 @@ class Gameplay extends Group {
       sfx,
       translocables,
     } = scene;
+
+    this.player = player;
 
     this.birds = new Birds({ anchor: player });
     this.add(this.birds);
@@ -70,17 +75,14 @@ class Gameplay extends Group {
       return effects;
     }, { list: [] });
 
-    const explosions = [...Array(50)].map(() => {
+    this.explosions = [...Array(50)].map(() => {
       const explosion = new Explosion({ sfx });
       this.add(explosion);
       return explosion;
     });
-    this.explosions = explosions;
 
     const ground = new Ground(256, 256, groundColor);
     this.add(ground);
-
-    this.player = player;
 
     const spawn = Math.floor(Math.random() * elevators.length);
     elevators = elevators.map(({ position, rotation }, i) => {
@@ -119,6 +121,41 @@ class Gameplay extends Group {
       }
     }
 
+    if (pickups) {
+      const initialAmmo = 10;
+      this.ammo = {
+        count: initialAmmo,
+        counters: ['left', 'right'].map((hand) => {
+          const counter = new Counter({
+            handedness: hand,
+            icon: 'circle',
+            value: initialAmmo,
+          });
+          counter.position.set(0.06 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
+          player.attach(counter, hand);
+          return counter;
+        }),
+        use() {
+          if (this.count === 0) {
+            return;
+          }
+          this.count -= 1;
+          this.update();
+        },
+        reload(amount = initialAmmo) {
+          this.count += amount;
+          this.update();
+        },
+        reset() {
+          this.count = initialAmmo;
+          this.update();
+        },
+        update() {
+          this.counters.forEach((counter) => counter.set(this.count));
+        },
+      };
+    }
+
     const color = new Color();
     const vector = new Vector3();
 
@@ -146,22 +183,16 @@ class Gameplay extends Group {
       rocket.tick -= delta;
       if (rocket.tick <= 0) {
         rocket.tick = 0.05 + Math.random() * 0.05;
-        const explosion = explosions.find(({ sound, visible }) => (
-          !visible && (!sound || !sound.isPlaying)
-        ));
-        if (explosion) {
-          vector
-            .set((Math.random() - 0.5) * 2, (Math.random() - 0.5), (Math.random() - 0.5) * 2)
-            .normalize()
-            .multiplyScalar(24);
-          vector.y += 30;
-          explosion.detonate({
-            color: color.setRGB(Math.random(), Math.random(), Math.random()),
-            filter: 'highpass',
-            position: vector,
-            scale: 0.5 + Math.random(),
-          });
-        }
+        vector
+          .set((Math.random() - 0.5) * 2, (Math.random() - 0.5), (Math.random() - 0.5) * 2)
+          .normalize()
+          .multiplyScalar(24);
+        vector.y += 30;
+        this.spawnExplosion(
+          vector,
+          color.setRGB(Math.random(), Math.random(), Math.random()),
+          0.5 + Math.random()
+        );
       }
       rocket.timer -= delta;
       if (rocket.timer <= 0) {
@@ -227,17 +258,7 @@ class Gameplay extends Group {
       if (mesh !== this.spheres) {
         return;
       }
-      const explosion = explosions.find(({ sound, visible }) => (
-        !visible && (!sound || !sound.isPlaying)
-      ));
-      if (explosion) {
-        explosion.detonate({
-          color: this.spheres.getColorAt(index, color),
-          filter: 'highpass',
-          position: point,
-          scale: 0.5,
-        });
-      }
+      this.spawnExplosion(point, this.spheres.getColorAt(index, color));
       this.physics.setMeshPosition(
         this.spheres,
         vector.set(0, 0.2, -1000 - index),
@@ -336,6 +357,24 @@ class Gameplay extends Group {
         });
     }
 
+    if (pickups) {
+      models.load(pickups.model)
+        .then(({ children: [{ children: [model] }] }) => {
+          this.pickups = new Pickups({
+            instances: pickups.instances,
+            model,
+            onPick: (position) => {
+              this.spawnExplosion(
+                position,
+                color.setRGB(Math.random(), Math.random(), Math.random())
+              );
+              this.ammo.reload();
+            },
+          });
+          this.add(this.pickups);
+        });
+    }
+
     Promise.all([
       scene.getPhysics(),
       models.physics('models/rocketPhysics.json', 0.25),
@@ -380,6 +419,7 @@ class Gameplay extends Group {
 
   onAnimationTick(animation) {
     const {
+      ammo,
       birds,
       clouds,
       effects,
@@ -388,6 +428,7 @@ class Gameplay extends Group {
       peers,
       physics,
       platforms,
+      pickups,
       player,
       rocket,
     } = this;
@@ -400,6 +441,14 @@ class Gameplay extends Group {
     }
     if (platforms) {
       platforms.animate(animation);
+    }
+    if (pickups) {
+      pickups.animate(animation);
+      player.controllers.forEach(({ hand, worldspace }) => {
+        if (hand) {
+          pickups.pick(worldspace.position);
+        }
+      });
     }
     rocket.animate(animation);
     let isOnElevator = false;
@@ -423,7 +472,7 @@ class Gameplay extends Group {
         }
       }
     });
-    if (!physics || isOnElevator) {
+    if (!physics || isOnElevator || (ammo && ammo.count === 0)) {
       return;
     }
     [
@@ -446,18 +495,44 @@ class Gameplay extends Group {
           position.x, position.y, position.z,
           impulse.x, impulse.y, impulse.z,
         ]).buffer));
+        if (ammo) {
+          ammo.use();
+        }
       }
     });
   }
 
   respawn() {
-    const { effects, elevators, player } = this;
+    const {
+      ammo,
+      effects,
+      elevators,
+      player,
+    } = this;
+    if (ammo) {
+      ammo.reset();
+    }
     effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
     player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
     this.spawn = elevator;
     this.syncTimeOffset();
+  }
+
+  spawnExplosion(position, color, scale = 0.5) {
+    const { explosions } = this;
+    const explosion = explosions.find(({ sound, visible }) => (
+      !visible && (!sound || !sound.isPlaying)
+    ));
+    if (explosion) {
+      explosion.detonate({
+        color,
+        filter: 'highpass',
+        position,
+        scale,
+      });
+    }
   }
 
   spawnSphere(position, impulse) {
@@ -475,11 +550,23 @@ class Gameplay extends Group {
   }
 
   onUnload() {
-    const { birds, peers, platforms } = this;
+    const {
+      ammo,
+      birds,
+      peers,
+      platforms,
+      pickups,
+    } = this;
+    if (ammo) {
+      ammo.counters.forEach((counter) => counter.dispose());
+    }
     birds.dispose();
     peers.disconnect();
     if (platforms) {
       platforms.dispose();
+    }
+    if (pickups) {
+      pickups.dispose();
     }
   }
 }

@@ -28,6 +28,16 @@ class Pit extends Gameplay {
         }),
         model: 'models/platform.glb',
       },
+      pickups: {
+        instances: [...Array(6)].map((v, i) => (
+          new Vector3(
+            6.75 * (i % 2 === 0 ? 1 : -1),
+            3.5,
+            -16 + Math.floor(i / 2) * 16
+          )
+        )),
+        model: 'models/barrel.glb',
+      },
       rocketOrigin: new Vector3(0, 2.75, 0),
       rocketRotation: Math.PI * 0.5,
       scene,

@@ -34,7 +34,7 @@ class Platforms extends InstancedMesh {
       height: size.y * scale,
       depth: size.z * scale,
     };
-    this.platforms = instances.map(({
+    this.instances = instances.map(({
       direction,
       origin,
       speed,
@@ -62,9 +62,9 @@ class Platforms extends InstancedMesh {
       auxMatrix,
       auxVector,
       onMovement,
-      platforms,
+      instances,
     } = this;
-    platforms.forEach(({
+    instances.forEach(({
       direction,
       movement,
       origin,
@@ -80,14 +80,14 @@ class Platforms extends InstancedMesh {
       this.setMatrixAt(i, auxMatrix);
     });
     this.instanceMatrix.needsUpdate = true;
-    if (onMovement()) {
+    if (onMovement) {
       onMovement();
     }
   }
 
   getMovement(index) {
-    const { platforms } = this;
-    return platforms[index].movement;
+    const { instances } = this;
+    return instances[index].movement;
   }
 }
 
