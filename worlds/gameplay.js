@@ -203,7 +203,7 @@ class Gameplay extends Group {
         return;
       }
       rocket.trigger();
-      this.peers.broadcast(new Uint8Array([0x01]));
+      this.peers.broadcast(new Uint8Array(1));
     };
     this.add(button);
 
@@ -285,7 +285,12 @@ class Gameplay extends Group {
               return;
             }
             if (buffer.byteLength === 1) {
-              rocket.trigger();
+              const [id] = new Uint8Array(buffer);
+              if (id === 0) {
+                rocket.trigger();
+              } else if (this.pickups) {
+                this.pickups.pickByIndex(id - 1);
+              }
             } else if (buffer.byteLength === 24) {
               const [x, y, z, ix, iy, iz] = new Float32Array(buffer);
               this.spawnSphere({ x, y, z }, { x: ix, y: iy, z: iz });
@@ -357,12 +362,15 @@ class Gameplay extends Group {
           this.pickups = new Pickups({
             instances: pickups.instances,
             model,
-            onPick: (position) => {
+            onPick: ({ position, index }, isRemote) => {
               this.spawnExplosion(
                 position,
                 color.setRGB(Math.random(), Math.random(), Math.random())
               );
-              this.ammo.reload();
+              if (!isRemote) {
+                this.ammo.reload();
+                this.peers.broadcast(new Uint8Array([index + 1]));
+              }
             },
           });
           this.add(this.pickups);
@@ -440,7 +448,7 @@ class Gameplay extends Group {
       pickups.animate(animation);
       player.controllers.forEach(({ hand, worldspace }) => {
         if (hand) {
-          pickups.pick(worldspace.position);
+          pickups.pickAtPoint(worldspace.position);
         }
       });
     }

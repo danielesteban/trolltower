@@ -86,7 +86,7 @@ class Pickups extends InstancedMesh {
     geometry.dispose();
   }
 
-  pick(point) {
+  pickAtPoint(point) {
     const { instances, onPick } = this;
     const instance = instances.find(({ position, visible }) => (
       visible && position.distanceTo(point) <= 0.5
@@ -98,7 +98,23 @@ class Pickups extends InstancedMesh {
     instance.scale = 0;
     instance.timer = 30;
     if (onPick) {
-      onPick(instance.position);
+      onPick(instance);
+    }
+  }
+
+  pickByIndex(index) {
+    const { instances, onPick } = this;
+    const instance = instances.find(({ index: key, visible }) => (
+      visible && key === index
+    ));
+    if (!instance) {
+      return;
+    }
+    instance.visible = false;
+    instance.scale = 0;
+    instance.timer = 30;
+    if (onPick) {
+      onPick(instance, true);
     }
   }
 }
