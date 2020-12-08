@@ -58,6 +58,11 @@ class Gameplay extends Group {
         color: 0xFF0000,
         onEnd: () => this.respawn(),
       },
+      {
+        id: 'suffocating',
+        color: 0,
+        onEnd: () => this.respawn(),
+      },
     ].reduce((effects, {
       id,
       color,
@@ -377,6 +382,18 @@ class Gameplay extends Group {
         });
     }
 
+    const collision = [];
+    const head = new Box3();
+    this.isOnGeometry = () => {
+      head.setFromObject(player.head.physics);
+      return collision.find((mesh) => {
+        if (!mesh.collision || mesh.collisionAutoUpdate) {
+          mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
+        }
+        return mesh.collision.intersectsBox(head);
+      });
+    };
+
     Promise.all([
       scene.getPhysics(),
       models.physics('models/rocketPhysics.json', 0.25),
@@ -407,6 +424,7 @@ class Gameplay extends Group {
         }
         if (towerPhysics) {
           towerPhysics.forEach((box) => {
+            collision.push(box);
             climbables.push(box);
             translocables.push(box);
             this.physics.addMesh(box);
@@ -453,6 +471,12 @@ class Gameplay extends Group {
       });
     }
     rocket.animate(animation);
+    const isOnGeometry = this.isOnGeometry();
+    if (isOnGeometry) {
+      effects.suffocating.trigger();
+    } else if (effects.suffocating.visible) {
+      effects.suffocating.reset();
+    }
     let isOnElevator = false;
     elevators.forEach((elevator) => {
       elevator.animate(animation);
