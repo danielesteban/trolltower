@@ -30,6 +30,18 @@ class Well extends Gameplay {
         }),
         model: 'models/platform.glb',
       },
+      pickups: {
+        instances: [...Array(8)].map((v, i) => {
+          const angle = i * Math.PI * 0.5;
+          const dist = 11.5;
+          return new Vector3(
+            Math.cos(angle) * dist,
+            Math.floor(i / 4) === 0 ? 27.5 : 14.5,
+            Math.sin(angle) * dist
+          );
+        }),
+        model: 'models/barrel.glb',
+      },
       rocketOrigin: new Vector3(0, 7.25, 0),
       rocketRotation: Math.PI,
       scene,

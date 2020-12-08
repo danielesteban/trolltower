@@ -142,12 +142,8 @@ class Gameplay extends Group {
           this.count -= 1;
           this.update();
         },
-        reload(amount = initialAmmo) {
-          this.count += amount;
-          this.update();
-        },
-        reset() {
-          this.count = initialAmmo;
+        reload() {
+          this.count += initialAmmo;
           this.update();
         },
         update() {
@@ -510,7 +506,7 @@ class Gameplay extends Group {
       player,
     } = this;
     if (ammo) {
-      ammo.reset();
+      ammo.reload();
     }
     effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
