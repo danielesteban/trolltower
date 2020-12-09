@@ -40,6 +40,7 @@ class Spheres extends Bodies {
             sound.setFilter(sound.filter);
             sound.setRefDistance(2);
             sound.setVolume(1 / 3);
+            this.add(sound);
             return sound;
           })
       )))
@@ -59,7 +60,6 @@ class Spheres extends Bodies {
       sound.filter.frequency.value = (Math.random() + 0.5) * 1000;
       sound.position.copy(position);
       sound.play();
-      sound.updateMatrixWorld();
     }
   }
 }
