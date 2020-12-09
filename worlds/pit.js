@@ -71,6 +71,11 @@ class Pit extends Gameplay {
     Lava.animate(animation);
     if (player.head.position.y < 3) {
       effects.burning.trigger();
+      player.controllers.forEach((controller) => {
+        if (controller.hand) {
+          controller.pulse(0.6, 10);
+        }
+      });
     }
   }
 

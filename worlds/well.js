@@ -72,10 +72,15 @@ class Well extends Gameplay {
   onAnimationTick(animation) {
     const { effects, player } = this;
     super.onAnimationTick(animation);
+    Lava.animate(animation);
     if (player.head.position.y < 3) {
       effects.burning.trigger();
+      player.controllers.forEach((controller) => {
+        if (controller.hand) {
+          controller.pulse(0.6, 10);
+        }
+      });
     }
-    Lava.animate(animation);
   }
 
   resumeAudio() {
