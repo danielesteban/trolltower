@@ -16,6 +16,7 @@ import Explosion from '../renderables/explosion.js';
 import Ground from '../renderables/ground.js';
 import Platforms from '../renderables/platforms.js';
 import Pickups from '../renderables/pickups.js';
+import Rocket from '../renderables/rocket.js';
 import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
@@ -159,50 +160,58 @@ class Gameplay extends Group {
     const color = new Color();
     const vector = new Vector3();
 
-    const rocket = new Group();
-    rocket.position.copy(rocketOrigin);
-    rocket.initialPosition = rocket.position.clone();
-    rocket.rotation.set(0, rocketRotation, 0);
-    rocket.updateMatrixWorld();
-    rocket.bounds = (
-      new Box3(new Vector3(-0.75, 0, -0.75), new Vector3(0.75, 4, 0.75))
-    ).applyMatrix4(rocket.matrixWorld);
+    const rocket = new Rocket({
+      models,
+      position: rocketOrigin,
+      rotation: rocketRotation,
+      onAnimation: ({ step, tick }) => {
+        if (rocket.movePlayer) {
+          player.move(vector.set(0, step, 0));
+        }
+        if (tick) {
+          vector
+            .set((Math.random() - 0.5) * 2, (Math.random() - 0.5), (Math.random() - 0.5) * 2)
+            .normalize()
+            .multiplyScalar(24);
+          vector.y += 30;
+          this.spawnExplosion(
+            vector,
+            color.setRGB(Math.random(), Math.random(), Math.random()),
+            0.5 + Math.random()
+          );
+        }
+      },
+      onTrigger: () => {
+        rocket.movePlayer = rocket.bounds.containsPoint(player.head.position);
+        this.physics.removeConstraint(button.constraint);
+        this.physics.removeMesh(button);
+        rocket.worldToLocal(button.position.copy(button.initialPosition));
+        button.rotation.set(0, 0, 0);
+        rocket.add(button);
+      },
+      onReset: () => {
+        button.position.copy(button.initialPosition);
+        button.rotation.y = button.initialRotation;
+        this.add(button);
+        this.physics.addMesh(button, 1);
+        button.constraint = this.physics.addConstraint(button, button.slider);
+        for (let i = 0; i < this.spheres.count; i += 1) {
+          this.physics.setMeshPosition(
+            this.spheres,
+            vector.set(0, 0.2, -1000 - i),
+            i,
+            false
+          );
+        }
+        this.respawn();
+      },
+    });
     this.add(rocket);
     this.rocket = rocket;
 
-    rocket.animate = ({ delta }) => {
-      if (!rocket.enabled) {
-        return;
-      }
-      const step = rocket.speed * delta;
-      rocket.speed += delta * 5;
-      rocket.position.y += step;
-      if (rocket.movePlayer) {
-        player.move(vector.set(0, step, 0));
-      }
-      rocket.tick -= delta;
-      if (rocket.tick <= 0) {
-        rocket.tick = 0.05 + Math.random() * 0.05;
-        vector
-          .set((Math.random() - 0.5) * 2, (Math.random() - 0.5), (Math.random() - 0.5) * 2)
-          .normalize()
-          .multiplyScalar(24);
-        vector.y += 30;
-        this.spawnExplosion(
-          vector,
-          color.setRGB(Math.random(), Math.random(), Math.random()),
-          0.5 + Math.random()
-        );
-      }
-      rocket.timer -= delta;
-      if (rocket.timer <= 0) {
-        rocket.reset();
-      }
-    };
-
     const button = new Button({
       position: rocket.localToWorld(new Vector3(0, 2, -0.6)),
-      rotation: rocketRotation,
+      rotation: rocket.rotation.y,
     });
     button.trigger.onContact = ({ mesh }) => {
       if (rocket.enabled || mesh !== button) {
@@ -212,47 +221,6 @@ class Gameplay extends Group {
       this.peers.broadcast(new Uint8Array(1));
     };
     this.add(button);
-
-    rocket.trigger = () => {
-      if (rocket.enabled) {
-        return;
-      }
-      rocket.enabled = true;
-      rocket.movePlayer = rocket.bounds.containsPoint(player.head.position);
-      rocket.speed = 0;
-      rocket.tick = 0;
-      rocket.timer = 10;
-      this.physics.removeConstraint(button.constraint);
-      this.physics.removeMesh(button);
-      rocket.worldToLocal(button.position.copy(button.initialPosition));
-      button.rotation.set(0, 0, 0);
-      rocket.add(button);
-    };
-    rocket.reset = () => {
-      rocket.enabled = false;
-      rocket.position.copy(rocket.initialPosition);
-      rocket.updateMatrixWorld();
-      button.position.copy(button.initialPosition);
-      button.rotation.y = button.initialRotation;
-      this.add(button);
-      this.physics.addMesh(button, 1);
-      button.constraint = this.physics.addConstraint(button, button.slider);
-      for (let i = 0; i < this.spheres.count; i += 1) {
-        this.physics.setMeshPosition(
-          this.spheres,
-          vector.set(0, 0.2, -1000 - i),
-          i,
-          false
-        );
-      }
-      this.respawn();
-    };
-
-    models.load('models/rocket.glb')
-      .then((model) => {
-        model.scale.setScalar(0.25);
-        rocket.add(model);
-      });
 
     scene.getPhysics()
       .then((physics) => {
