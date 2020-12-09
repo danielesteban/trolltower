@@ -53,6 +53,34 @@ class Gameplay extends Group {
     this.clouds = new Clouds();
     this.add(this.clouds);
 
+    this.ammo = {
+      count: defaultAmmo,
+      counters: ['left', 'right'].map((hand) => {
+        const counter = new Counter({
+          handedness: hand,
+          icon: 'circle',
+          value: defaultAmmo,
+        });
+        counter.position.set(0.045 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
+        player.attach(counter, hand);
+        return counter;
+      }),
+      use() {
+        if (this.count === 0) {
+          return;
+        }
+        this.count -= 1;
+        this.update();
+      },
+      reload() {
+        this.count = defaultAmmo;
+        this.update();
+      },
+      update() {
+        this.counters.forEach((counter) => counter.set(this.count));
+      },
+    };
+
     this.effects = [
       {
         id: 'burning',
@@ -127,34 +155,6 @@ class Gameplay extends Group {
         player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
       }
     }
-
-    this.ammo = {
-      count: defaultAmmo,
-      counters: ['left', 'right'].map((hand) => {
-        const counter = new Counter({
-          handedness: hand,
-          icon: 'circle',
-          value: defaultAmmo,
-        });
-        counter.position.set(0.045 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
-        player.attach(counter, hand);
-        return counter;
-      }),
-      use() {
-        if (this.count === 0) {
-          return;
-        }
-        this.count -= 1;
-        this.update();
-      },
-      reload() {
-        this.count = defaultAmmo;
-        this.update();
-      },
-      update() {
-        this.counters.forEach((counter) => counter.set(this.count));
-      },
-    };
 
     const color = new Color();
     const vector = new Vector3();
@@ -240,7 +240,7 @@ class Gameplay extends Group {
       for (let i = 0; i < this.spheres.count; i += 1) {
         this.physics.setMeshPosition(
           this.spheres,
-          new Vector3(0, 0.2, -1000 - i),
+          vector.set(0, 0.2, -1000 - i),
           i,
           false
         );
@@ -254,33 +254,49 @@ class Gameplay extends Group {
         rocket.add(model);
       });
 
-    const onContact = ({ mesh, index, point }) => {
-      if (mesh !== this.spheres) {
-        return;
-      }
-      this.spawnExplosion(point, this.spheres.getColorAt(index, color));
-      this.physics.setMeshPosition(
-        this.spheres,
-        vector.set(0, 0.2, -1000 - index),
-        index,
-        false
-      );
-      if (
-        !climbing.isFalling && !player.destination && player.head.position.distanceTo(point) < 1
-      ) {
-        climbing.grip[0] = false;
-        climbing.grip[1] = false;
-        climbing.isFalling = true;
-        climbing.fallSpeed = 0;
-      }
-    };
-
     scene.getPhysics()
       .then((physics) => {
         this.physics = physics;
+
+        this.physics.addMesh(button, 1);
+        button.constraint = this.physics.addConstraint(button, button.slider);
+        this.physics.addMesh(button.trigger, 0, { isTrigger: true });
+
+        this.physics.addMesh(ground);
+
+        this.sphere = 0;
+        this.spheres = new Spheres({ count: 50 });
+        this.spheres.destroyOnContact = ({ mesh, index, point }) => {
+          if (mesh !== this.spheres) {
+            return;
+          }
+          this.spawnExplosion(point, this.spheres.getColorAt(index, color));
+          this.physics.setMeshPosition(
+            this.spheres,
+            vector.set(0, 0.2, -1000 - index),
+            index,
+            false
+          );
+          if (
+            !climbing.isFalling && !player.destination && player.head.position.distanceTo(point) < 1
+          ) {
+            climbing.grip[0] = false;
+            climbing.grip[1] = false;
+            climbing.isFalling = true;
+            climbing.fallSpeed = 0;
+          }
+        };
+        const matrix = new Matrix4();
+        for (let i = 0; i < this.spheres.count; i += 1) {
+          matrix.setPosition(0, 0.2, -1000 - i);
+          this.spheres.setMatrixAt(i, matrix);
+        }
+        this.physics.addMesh(this.spheres, 1, { isSleeping: true });
+        this.add(this.spheres);
+
         this.peers = new Peers({
           onJoin: (peer) => {
-            peer.head.onContact = onContact;
+            peer.head.onContact = this.spheres.destroyOnContact;
             this.physics.addMesh(peer.head, 0, { isKinematic: true, isTrigger: true });
           },
           onLeave: (peer) => {
@@ -307,28 +323,12 @@ class Gameplay extends Group {
         });
         this.add(this.peers);
 
-        player.head.physics.onContact = onContact;
+        player.head.physics.onContact = this.spheres.destroyOnContact;
         this.physics.addMesh(player.head.physics, 0, { isKinematic: true, isTrigger: true });
 
         player.controllers.forEach((controller) => {
           this.physics.addMesh(controller.physics, 0, { isKinematic: true });
         });
-
-        this.physics.addMesh(ground);
-
-        this.physics.addMesh(button, 1);
-        button.constraint = this.physics.addConstraint(button, button.slider);
-        this.physics.addMesh(button.trigger, 0, { isTrigger: true });
-
-        this.sphere = 0;
-        this.spheres = new Spheres({ count: 50 });
-        const matrix = new Matrix4();
-        for (let i = 0; i < this.spheres.count; i += 1) {
-          matrix.setPosition(0, 0.2, -1000 - i);
-          this.spheres.setMatrixAt(i, matrix);
-        }
-        this.physics.addMesh(this.spheres, 1, { isSleeping: true });
-        this.add(this.spheres);
       });
 
     if (platforms) {
@@ -337,7 +337,6 @@ class Gameplay extends Group {
         models.load(platforms.model),
       ])
         .then(([/* physics */, { children: [{ children: [model] }] }]) => {
-          const movement = new Vector3();
           this.platforms = new Platforms({
             instances: platforms.instances,
             model,
@@ -353,7 +352,7 @@ class Gameplay extends Group {
               if (grip.length > 1 && grip[0].index !== grip[1].index) {
                 climbing.grip[grip[1].hand] = false;
               }
-              player.move(movement.copy(this.platforms.getMovement(grip[0].index)).negate());
+              player.move(vector.copy(this.platforms.getMovement(grip[0].index)).negate());
             },
           });
           climbables.push(this.platforms);
