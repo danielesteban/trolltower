@@ -233,7 +233,11 @@ class Gameplay extends Group {
         this.physics.addMesh(ground);
 
         this.sphere = 0;
-        this.spheres = new Spheres({ count: 50 });
+        this.spheres = new Spheres({
+          count: 50,
+          sfx,
+          sound: 'sounds/shot.ogg',
+        });
         this.spheres.destroyOnContact = ({ mesh, index, point }) => {
           if (mesh !== this.spheres) {
             return;
@@ -551,6 +555,7 @@ class Gameplay extends Group {
       sphere
     );
     physics.applyImpulse(spheres, impulse, sphere);
+    spheres.playSound(position);
   }
 
   onUnload() {
