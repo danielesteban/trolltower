@@ -4,8 +4,8 @@ import {
   Group,
   Matrix4,
   Vector3,
-} from '../core/three.js';
-import Peers from '../core/peers.js';
+} from './three.js';
+import Peers from './peers.js';
 import Birds from '../renderables/birds.js';
 import Button from '../renderables/button.js';
 import Clouds from '../renderables/clouds.js';

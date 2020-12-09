@@ -1,9 +1,5 @@
-import {
-  Color,
-  FogExp2,
-  Vector3,
-} from '../core/three.js';
-import Gameplay from './gameplay.js';
+import { Color, FogExp2, Vector3 } from '../core/three.js';
+import Gameplay from '../core/gameplay.js';
 import Lava from '../renderables/lava.js';
 
 class Pit extends Gameplay {

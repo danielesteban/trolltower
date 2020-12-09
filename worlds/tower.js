@@ -4,7 +4,7 @@ import {
   Group,
   Vector3,
 } from '../core/three.js';
-import Gameplay from './gameplay.js';
+import Gameplay from '../core/gameplay.js';
 import Ocean from '../renderables/ocean.js';
 
 class Tower extends Gameplay {
