@@ -36,10 +36,10 @@ class Pit extends Gameplay {
       },
       rocketOrigin: new Vector3(0, 2.75, 0),
       rocketRotation: Math.PI * 0.5,
+      terrainPhysics: 'models/pitPhysics.json',
       scene,
       offset,
       room: `Pit-${instance}`,
-      terrainPhysics: 'models/pitPhysics.json',
     });
 
     const { models, sfx } = scene;

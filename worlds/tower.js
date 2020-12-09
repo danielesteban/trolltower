@@ -46,10 +46,10 @@ class Tower extends Gameplay {
         model: 'models/barrel.glb',
       },
       rocketOrigin: new Vector3(0, 31.25, 0),
+      terrainPhysics: 'models/towerTerrainPhysics.json',
       scene,
       offset,
       room: `Tower-${instance}`,
-      terrainPhysics: 'models/towerTerrainPhysics.json',
     });
 
     const { ambient, models, translocables } = scene;
