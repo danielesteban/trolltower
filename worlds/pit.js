@@ -15,7 +15,7 @@ class Pit extends Gameplay {
           return {
             origin: new Vector3(
               6 * (j % 2 === 0 ? 1 : -1),
-              5.25 + Math.sin(j * 4) * 0.1,
+              5 + Math.sin(j * 4) * 0.1,
               -29.25 + j * 1.5
             ),
             direction: (new Vector3(12, 0, 0)).multiplyScalar(j % 2 === 0 ? -1 : 1),
