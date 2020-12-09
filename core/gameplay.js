@@ -20,6 +20,7 @@ import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
   constructor({
+    climbablesPhysics = false,
     elevators,
     defaultAmmo = 10,
     groundColor = 0,
@@ -31,7 +32,6 @@ class Gameplay extends Group {
     offset,
     room,
     terrainPhysics = false,
-    towerPhysics = false,
   }) {
     super();
 
@@ -383,11 +383,11 @@ class Gameplay extends Group {
         });
     }
 
-    const collision = [];
+    const suffocables = [];
     const head = new Box3();
-    this.isOnGeometry = () => {
+    this.isInsideGeometry = () => {
       head.setFromObject(player.head.physics);
-      return collision.find((mesh) => {
+      return suffocables.find((mesh) => {
         if (!mesh.collision || mesh.collisionAutoUpdate) {
           mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
         }
@@ -397,12 +397,21 @@ class Gameplay extends Group {
 
     Promise.all([
       scene.getPhysics(),
+      climbablesPhysics ? models.physics(climbablesPhysics, 0.5) : Promise.resolve(),
       models.physics('models/rocketPhysics.json', 0.25),
       terrainPhysics ? models.physics(terrainPhysics, 0.5) : Promise.resolve(),
-      towerPhysics ? models.physics(towerPhysics, 0.5) : Promise.resolve(),
     ])
-      .then(([/* physics */, rocketPhysics, terrainPhysics, towerPhysics]) => {
+      .then(([/* physics */, climbablesPhysics, rocketPhysics, terrainPhysics]) => {
         translocables.push(ground);
+        if (climbablesPhysics) {
+          climbablesPhysics.forEach((box) => {
+            climbables.push(box);
+            suffocables.push(box);
+            translocables.push(box);
+            this.physics.addMesh(box);
+            this.add(box);
+          });
+        }
         rocket.physics = [];
         rocketPhysics.forEach((box) => {
           translocables.push(box);
@@ -418,15 +427,6 @@ class Gameplay extends Group {
         this.physics.addMesh(rocket, 0, { isKinematic: true });
         if (terrainPhysics) {
           terrainPhysics.forEach((box) => {
-            translocables.push(box);
-            this.physics.addMesh(box);
-            this.add(box);
-          });
-        }
-        if (towerPhysics) {
-          towerPhysics.forEach((box) => {
-            collision.push(box);
-            climbables.push(box);
             translocables.push(box);
             this.physics.addMesh(box);
             this.add(box);
@@ -472,17 +472,6 @@ class Gameplay extends Group {
       });
     }
     rocket.animate(animation);
-    const isOnGeometry = this.isOnGeometry();
-    if (isOnGeometry) {
-      effects.suffocating.trigger();
-      player.controllers.forEach((controller) => {
-        if (controller.hand) {
-          controller.pulse(0.6, 10);
-        }
-      });
-    } else if (effects.suffocating.visible) {
-      effects.suffocating.reset();
-    }
     let isOnElevator = false;
     elevators.forEach((elevator) => {
       elevator.animate(animation);
@@ -504,8 +493,18 @@ class Gameplay extends Group {
         }
       }
     });
-    if (ammo.count === 0 || !physics || isOnElevator) {
+    if (!physics || isOnElevator) {
       return;
+    }
+    if (this.isInsideGeometry()) {
+      effects.suffocating.trigger();
+      player.controllers.forEach((controller) => {
+        if (controller.hand) {
+          controller.pulse(0.6, 10);
+        }
+      });
+    } else if (effects.suffocating.visible) {
+      effects.suffocating.reset();
     }
     [
       player.desktopControls,

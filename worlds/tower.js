@@ -28,6 +28,7 @@ class Tower extends Gameplay {
     });
 
     super({
+      climbablesPhysics: 'models/towerPhysics.json',
       elevators,
       groundColor: 0x05bb7c,
       pickups: {
@@ -48,8 +49,7 @@ class Tower extends Gameplay {
       scene,
       offset,
       room: `Tower-${instance}`,
-      terrainPhysics: 'models/towerIslandPhysics.json',
-      towerPhysics: 'models/towerPhysics.json',
+      terrainPhysics: 'models/towerTerrainPhysics.json',
     });
 
     const { ambient, models, translocables } = scene;
