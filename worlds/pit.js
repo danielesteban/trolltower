@@ -73,7 +73,7 @@ class Pit extends Gameplay {
       effects.burning.trigger();
       player.controllers.forEach((controller) => {
         if (controller.hand) {
-          controller.pulse(0.6, 10);
+          controller.pulse(0.4, 10);
         }
       });
     }
