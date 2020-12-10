@@ -60,7 +60,6 @@ class Ocean extends InstancedMesh {
       }
     }
     this.scale.set(2, 1, 2);
-    this.renderOrder = -1;
   }
 
   static animate({ time }) {
