@@ -50,8 +50,8 @@ class Tower extends Gameplay {
             };
           }),
           {
-            origin: new Vector3(0, 21, 0),
-            direction: new Vector3(0, 10, 0),
+            origin: new Vector3(0, 18, 0),
+            direction: new Vector3(0, 13, 0),
             speed: 0.5,
           },
         ],
