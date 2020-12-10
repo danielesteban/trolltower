@@ -78,8 +78,6 @@ class Tower extends Gameplay {
       room: `Tower-${instance}`,
     });
 
-    this.player.teleport(new Vector3(0, 1, 0))
-
     const { ambient, models, translocables } = scene;
     ambient.set([
       'sounds/rain.ogg',
