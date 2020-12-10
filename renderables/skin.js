@@ -5,6 +5,7 @@ import UI from './ui.js';
 class Skin extends Group {
   constructor(texture) {
     super();
+
     const head = new Head();
     head.onPointer = ({ buttons, uv }) => {
       if (buttons.primaryDown) {
@@ -19,12 +20,16 @@ class Skin extends Group {
         remove: buttons.gripDown,
         uv,
       });
-      localStorage.setItem('trolltower::skin', head.renderer.toDataURL());
+      save();
     };
     head.position.set(0, 0.75, 0);
     head.updateTexture(texture, true);
     head.setLayer('transparent');
     this.add(head);
+
+    const save = () => (
+      localStorage.setItem('trolltower::skin', head.renderer.toDataURL())
+    );
 
     const setLayer = (layer) => {
       head.setLayer(layer);
@@ -57,7 +62,10 @@ class Skin extends Group {
           width: 100,
           height: 24,
           label: 'RANDOMIZE',
-          onPointer: () => head.regenerate(),
+          onPointer: () => {
+            head.regenerate();
+            save();
+          },
         },
       ],
     });
