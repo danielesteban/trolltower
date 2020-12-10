@@ -9,15 +9,11 @@ import {
 
 class Counter extends Mesh {
   static setupGeometry() {
-    Counter.geometry = new PlaneBufferGeometry(0.075, 0.05);
+    Counter.geometry = new PlaneBufferGeometry(0.06, 0.04);
     Counter.geometry.deleteAttribute('normal');
   }
 
-  constructor({
-    handedness,
-    icon,
-    value = 0,
-  }) {
+  constructor({ icon, value = 0 }) {
     if (!Counter.geometry) {
       Counter.setupGeometry();
     }
@@ -36,14 +32,9 @@ class Counter extends Mesh {
     ctx.textBaseline = 'middle';
     ctx.font = '700 20px monospace';
     this.backgrounds = ['255, 0, 0', '0, 0, 255'].map((color) => {
-      const background = ctx.createLinearGradient(0, 0, renderer.width, renderer.height);
-      if (handedness === 'left') {
-        background.addColorStop(0, `rgba(${color}, 0)`);
-        background.addColorStop(1, `rgba(${color}, 0.1)`);
-      } else {
-        background.addColorStop(0, `rgba(${color}, 0.1)`);
-        background.addColorStop(1, `rgba(${color}, 0)`);
-      }
+      const background = ctx.createLinearGradient(0, 0, 0, renderer.height);
+      background.addColorStop(0, `rgba(${color}, 0.1)`);
+      background.addColorStop(1, 'rgba(0, 0, 0, 0.01)');
       return background;
     });
     this.foregrounds = ['#f66', '#99f'];
@@ -63,6 +54,11 @@ class Counter extends Mesh {
     const { material } = this;
     material.map.dispose();
     material.dispose();
+  }
+
+  clone() {
+    const { geometry, material } = this;
+    return new Mesh(geometry, material);
   }
 
   set(value) {

@@ -55,32 +55,26 @@ class Gameplay extends Group {
     this.add(this.clouds);
 
     this.ammo = {
-      count: defaultAmmo,
-      counters: ['left', 'right'].map((hand) => {
-        const counter = new Counter({
-          handedness: hand,
-          icon: 'circle',
-          value: defaultAmmo,
-        });
-        counter.position.set(0.045 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.06);
-        player.attach(counter, hand);
-        return counter;
+      counter: new Counter({
+        icon: 'circle',
+        value: defaultAmmo,
       }),
       use() {
-        if (this.count === 0) {
+        if (this.counter.value === 0) {
           return;
         }
-        this.count -= 1;
-        this.update();
+        this.counter.set(this.counter.value - 1);
       },
       reload() {
-        this.count = defaultAmmo;
-        this.update();
-      },
-      update() {
-        this.counters.forEach((counter) => counter.set(this.count));
+        this.counter.set(defaultAmmo);
       },
     };
+    ['left', 'right'].forEach((hand) => {
+      const counter = this.ammo.counter.clone();
+      counter.position.set(0.02 * (hand === 'left' ? -1 : 1), -0.1 / 3, 0.05);
+      counter.rotation.set(0, Math.PI * 0.4 * (hand === 'left' ? -1 : 1), Math.PI * 0.5 * (hand === 'left' ? 1 : -1));
+      player.attach(counter, hand);
+    });
 
     this.effects = [
       {
@@ -492,7 +486,7 @@ class Gameplay extends Group {
       raycaster,
     }) => {
       if (
-        ammo.count > 0
+        ammo.counter.value > 0
         && (
           (hand && buttons.triggerDown)
           || (isDesktop && buttons.primaryDown)
@@ -571,7 +565,7 @@ class Gameplay extends Group {
       platforms,
       pickups,
     } = this;
-    ammo.counters.forEach((counter) => counter.dispose());
+    ammo.counter.dispose();
     birds.dispose();
     peers.disconnect();
     if (platforms) {
