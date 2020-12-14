@@ -8,7 +8,6 @@ import {
 class Platforms extends InstancedMesh {
   constructor({
     model,
-    onMovement,
     instances,
   }) {
     const geometry = model.geometry.clone();
@@ -27,7 +26,6 @@ class Platforms extends InstancedMesh {
     this.auxMatrix = new Matrix4();
     this.auxVector = new Vector3();
     this.instanceMatrix.setUsage(DynamicDrawUsage);
-    this.onMovement = onMovement;
     this.physics = {
       shape: 'box',
       width: size.x * scale,
@@ -61,7 +59,6 @@ class Platforms extends InstancedMesh {
     const {
       auxMatrix,
       auxVector,
-      onMovement,
       instances,
     } = this;
     instances.forEach(({
@@ -80,9 +77,6 @@ class Platforms extends InstancedMesh {
       this.setMatrixAt(i, auxMatrix);
     });
     this.instanceMatrix.needsUpdate = true;
-    if (onMovement) {
-      onMovement();
-    }
   }
 
   getMovement(index) {

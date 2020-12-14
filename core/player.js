@@ -232,24 +232,6 @@ class Player extends Group {
     }
   }
 
-  fly({ animation: { delta }, direction, movement }) {
-    const {
-      help,
-      auxVector: vector,
-      position,
-    } = this;
-    position.addScaledVector(
-      vector
-        .copy(movement)
-        .normalize()
-        .applyQuaternion(direction),
-      delta * 4
-    );
-    if (help) {
-      help.dispose();
-    }
-  }
-
   move(offset) {
     const { controllers, head, position } = this;
     position.add(offset);

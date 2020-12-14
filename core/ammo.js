@@ -1,6 +1,7 @@
 // A copy of https://github.com/mrdoob/three.js/blob/master/examples/jsm/physics/AmmoPhysics.js
 // + an extra applyImpulse(mesh, impulse, index) method
 // + an extra addConstraint(mesh, options, index) method
+// + an extra contactTest(options) method
 // + an extra removeConstraint(constraint) method
 // + an extra removeMesh(mesh, index) method
 // + an extra reset() method
@@ -85,6 +86,14 @@ async function AmmoPhysics() {
   
       auxVector.setValue( physics.width / 2, physics.height / 2, physics.depth / 2 );
       const shape = new AmmoLib.btBoxShape( auxVector );
+
+      return shape;
+
+    }
+
+    if ( physics && physics.shape === 'capsule' ) {
+  
+      const shape = new AmmoLib.btCapsuleShape( physics.radius, physics.height );
 
       return shape;
 
@@ -479,6 +488,61 @@ async function AmmoPhysics() {
     }
   }
 
+  const contactCallback = new Ammo.ConcreteContactResultCallback();
+  const ghostObject = new AmmoLib.btGhostObject();
+
+  function contactTest(options) {
+
+    const shape = getShape({ physics: options });
+    if ( shape === null ) {
+      return [];
+    }
+
+    const results = [];
+
+    contactCallback.addSingleResult = (cp, colObj0Wrap, partId0, index0, colObj1Wrap) => {
+      const contactPoint = Ammo.castObject( { hy: cp }, Ammo.btManifoldPoint );      
+      const obj0Wrap = Ammo.castObject( { hy: colObj0Wrap }, Ammo.btCollisionObjectWrapper );
+      const obj1Wrap = Ammo.castObject( { hy: colObj1Wrap }, Ammo.btCollisionObjectWrapper );
+
+      let body;
+      let normal = contactPoint.get_m_normalWorldOnB();
+      if (Ammo.castObject( obj0Wrap.getCollisionObject(), Ammo.btGhostObject ) === ghostObject) {
+        body = Ammo.castObject( obj1Wrap.getCollisionObject(), Ammo.btRigidBody );
+        normal = { x: normal.x(), y: normal.y(), z: normal.z() };
+      } else {
+        body = Ammo.castObject( obj0Wrap.getCollisionObject(), Ammo.btRigidBody );
+        normal = { x: normal.x() * -1, y: normal.y() * -1, z: normal.z() * -1 };
+      }
+      const distance = contactPoint.getDistance();
+      if (!body.isStaticObject() || distance >= 0) {
+        return;
+      }
+      results.push({ distance, normal });
+    };
+
+    ghostObject.setCollisionShape( shape );
+
+    auxTransform.setIdentity();
+    if (options.position) {
+      auxVector.setValue( options.position.x, options.position.y, options.position.z );
+      auxTransform.setOrigin( auxVector );
+    }
+    if (options.rotation) {
+      auxQuaternion.setValue( options.rotation.x, options.rotation.y, options.rotation.z, options.rotation.w );
+      auxTransform.setRotation( auxQuaternion );
+    }
+
+    ghostObject.setWorldTransform( auxTransform );
+
+    world.contactTest(ghostObject, contactCallback);
+
+    Ammo.destroy(shape);
+
+    return results;
+
+  }
+
   function reset() {
 
     constraints.forEach((constraint) => {
@@ -678,7 +742,7 @@ async function AmmoPhysics() {
 
             if ( contactPoint.getDistance() < 0 ) {
 
-              const position = contactPoint.get_m_positionWorldOnA();
+              const position = contactPoint.getPositionWorldOnB();
               contact = { x: position.x(), y: position.y(), z: position.z() };
 
               break;
@@ -717,6 +781,7 @@ async function AmmoPhysics() {
     removeConstraint,
     setMeshPosition,
     applyImpulse,
+    contactTest,
     reset,
   };
 

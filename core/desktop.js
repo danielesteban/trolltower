@@ -110,7 +110,7 @@ class DesktopControls {
         .addScaledVector(worldUp, keyboard.y)
         .addScaledVector(forward, keyboard.z)
         .normalize();
-      player.position.addScaledVector(direction, delta * 6);
+      player.move(direction.multiplyScalar(delta * 6));
     }
     ['primary', 'secondary'].forEach((button) => {
       const state = buttonState[button];

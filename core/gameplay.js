@@ -3,6 +3,7 @@ import {
   Color,
   Group,
   Matrix4,
+  Sphere,
   Vector3,
 } from './three.js';
 import Peers from './peers.js';
@@ -37,15 +38,12 @@ class Gameplay extends Group {
     super();
 
     const {
-      climbables,
-      climbing,
       models,
       player,
       sfx,
       translocables,
     } = scene;
 
-    this.climbing = climbing;
     this.player = player;
 
     this.birds = new Birds({ anchor: player });
@@ -53,6 +51,20 @@ class Gameplay extends Group {
 
     this.clouds = new Clouds();
     this.add(this.clouds);
+
+    this.climbing = {
+      collision: new Box3(),
+      collisionMatrix: new Matrix4(),
+      bodyScale: 1,
+      grip: [false, false],
+      hand: new Sphere(new Vector3(), 0.1),
+      lastMovement: new Vector3(),
+      meshes: [],
+      movement: new Vector3(),
+      normal: new Vector3(),
+      velocity: new Vector3(),
+      worldUp: new Vector3(0, 1, 0),
+    };
 
     this.ammo = {
       counter: new Counter({
@@ -80,11 +92,6 @@ class Gameplay extends Group {
       {
         id: 'burning',
         color: 0xFF0000,
-        onEnd: () => this.respawn(),
-      },
-      {
-        id: 'suffocating',
-        color: 0,
         onEnd: () => this.respawn(),
       },
     ].reduce((effects, {
@@ -244,12 +251,12 @@ class Gameplay extends Group {
             false
           );
           if (
-            !climbing.isFalling && !player.destination && player.head.position.distanceTo(point) < 1
+            !player.isOnAir && !player.destination && player.head.position.distanceTo(point) < 1
           ) {
-            climbing.grip[0] = false;
-            climbing.grip[1] = false;
-            climbing.isFalling = true;
-            climbing.fallSpeed = 0;
+            this.climbing.grip[0] = false;
+            this.climbing.grip[1] = false;
+            this.climbing.velocity.set(0, 0, 0);
+            player.isOnAir = true;
           }
         };
         const matrix = new Matrix4();
@@ -306,28 +313,9 @@ class Gameplay extends Group {
           this.platforms = new Platforms({
             instances: platforms.instances,
             model,
-            onMovement: () => {
-              const grip = climbing.grip
-                .map((grip, hand) => ({ ...(grip || {}), hand }))
-                .filter(({ mesh }) => (mesh))
-                .sort(({ time: a }, { time: b }) => (b - a));
-              if (!grip.length) {
-                return;
-              }
-              if (
-                grip.length > 1
-                && (grip[0].mesh === this.platforms || grip[1].mesh === this.platforms)
-                && (grip[0].mesh !== grip[1].mesh || grip[0].index !== grip[1].index)
-              ) {
-                climbing.grip[grip[1].hand] = false;
-              }
-              if (grip[0].mesh === this.platforms) {
-                player.move(vector.copy(this.platforms.getMovement(grip[0].index)).negate());
-              }
-            },
           });
-          climbables.push(this.platforms);
           this.add(this.platforms);
+          this.climbing.meshes.push(this.platforms);
           this.physics.addMesh(this.platforms, 0, { isKinematic: true });
         });
     }
@@ -353,18 +341,6 @@ class Gameplay extends Group {
         });
     }
 
-    const suffocables = [];
-    const head = new Box3();
-    this.isInsideGeometry = () => {
-      head.setFromObject(player.head.physics);
-      return suffocables.find((mesh) => {
-        if (!mesh.collision || mesh.collisionAutoUpdate) {
-          mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
-        }
-        return mesh.collision.intersectsBox(head);
-      });
-    };
-
     Promise.all([
       scene.getPhysics(),
       climbablesPhysics ? models.physics(climbablesPhysics, 0.5) : Promise.resolve(),
@@ -375,9 +351,8 @@ class Gameplay extends Group {
         translocables.push(ground);
         if (climbablesPhysics) {
           climbablesPhysics.forEach((box) => {
-            climbables.push(box);
-            suffocables.push(box);
             translocables.push(box);
+            this.climbing.meshes.push(box);
             this.physics.addMesh(box);
             this.add(box);
           });
@@ -412,6 +387,7 @@ class Gameplay extends Group {
     const {
       ammo,
       birds,
+      climbing,
       clouds,
       effects,
       elevators,
@@ -423,15 +399,13 @@ class Gameplay extends Group {
       player,
       rocket,
     } = this;
+
     birds.animate(animation);
     clouds.animate(animation);
     effects.list.forEach((effect) => effect.animate(animation));
     explosions.forEach((explosion) => explosion.animate(animation));
     if (peers) {
       peers.animate(animation);
-    }
-    if (platforms) {
-      platforms.animate(animation);
     }
     if (pickups) {
       pickups.animate(animation);
@@ -442,6 +416,164 @@ class Gameplay extends Group {
       });
     }
     rocket.animate(animation);
+
+    if (!rocket.enabled && physics) {
+      let activeHands = 0;
+      climbing.movement.set(0, 0, 0);
+      player.controllers.forEach((controller, index) => {
+        if (
+          controller.hand
+          && controller.buttons.gripDown
+          && !(player.isOnAir && climbing.velocity.length() < -5)
+        ) {
+          let grip;
+          climbing.hand.center
+            .copy(controller.physics.position)
+            .applyQuaternion(controller.worldspace.quaternion)
+            .add(controller.worldspace.position);
+          for (let i = 0, l = climbing.meshes.length; !grip && i < l; i += 1) {
+            const mesh = climbing.meshes[i];
+            if (!mesh.collision || mesh.collisionAutoUpdate) {
+              mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
+            }
+            if (mesh.isInstancedMesh) {
+              for (let j = 0, c = mesh.count; j < c; j += 1) {
+                mesh.getMatrixAt(j, climbing.collisionMatrix);
+                climbing.collision
+                  .copy(mesh.collision)
+                  .applyMatrix4(climbing.collisionMatrix);
+                if (climbing.collision.intersectsSphere(climbing.hand)) {
+                  grip = { mesh, index: j, time: animation.time };
+                  break;
+                }
+              }
+            } else if (mesh.collision.intersectsSphere(climbing.hand)) {
+              grip = { mesh, time: animation.time };
+            }
+          }
+          if (grip) {
+            climbing.grip[index] = grip;
+            controller.pulse(0.3, 30);
+          }
+        }
+        if (climbing.grip[index]) {
+          if (!controller.hand || controller.buttons.gripUp || player.destination) {
+            climbing.grip[index] = false;
+            if (!climbing.activeHands) {
+              player.isOnAir = true;
+              climbing.velocity.copy(climbing.lastMovement);
+            }
+          } else {
+            climbing.movement.add(controller.worldspace.movement);
+            activeHands += 1;
+            player.isOnAir = false;
+          }
+        }
+      });
+      const jumpGrip = (
+        player.controllers[0].hand && player.controllers[0].buttons.grip
+        && player.controllers[1].hand && player.controllers[1].buttons.grip
+      );
+      if (
+        !activeHands
+        && jumpGrip
+        && !player.isOnAir
+        && !player.destination
+        && !climbing.jumping
+      ) {
+        climbing.jumping = true;
+      }
+      if (climbing.jumping) {
+        if (jumpGrip) {
+          activeHands = 2;
+          climbing.movement.addVectors(
+            player.controllers[0].worldspace.movement,
+            player.controllers[1].worldspace.movement
+          );
+        } else {
+          climbing.jumping = false;
+          player.isOnAir = true;
+          climbing.velocity.copy(climbing.lastMovement);
+        }
+      }
+      if (activeHands) {
+        player.move(
+          climbing.movement.divideScalar(activeHands).negate()
+        );
+        climbing.bodyScale = 0;
+        climbing.lastMovement.copy(climbing.movement).divideScalar(animation.delta);
+      } else if (player.isOnAir && !player.destination) {
+        climbing.velocity.y -= 9.8 * animation.delta;
+        player.move(
+          climbing.movement.copy(climbing.velocity).multiplyScalar(animation.delta)
+        );
+      }
+
+      if (!player.destination) {
+        if (!activeHands && climbing.bodyScale < 1) {
+          climbing.bodyScale = (
+            Math.min(Math.max(climbing.bodyScale + animation.delta * 2, 0.45), 1)
+          );
+        }
+        const radius = 0.15;
+        const height = (
+          Math.max(player.head.position.y - player.position.y - radius, 0) * climbing.bodyScale ** 2
+          + radius * 2
+        );
+        const contacts = this.physics.contactTest({
+          shape: 'capsule',
+          radius,
+          height: height - (radius * 2),
+          position: {
+            x: player.head.position.x,
+            y: (player.head.position.y + radius) - height * 0.5,
+            z: player.head.position.z,
+          },
+        });
+        if (contacts.length) {
+          climbing.movement.set(0, 0, 0);
+          contacts.forEach(({
+            distance,
+            normal,
+          }) => {
+            climbing.normal.copy(normal).normalize();
+            climbing.movement.addScaledVector(climbing.normal, -distance);
+            if (
+              climbing.bodyScale === 1
+              && climbing.normal.dot(climbing.worldUp) > 0
+            ) {
+              player.isOnAir = false;
+            }
+          });
+          if (climbing.movement.length()) {
+            player.move(climbing.movement);
+          }
+        }
+      }
+    }
+
+    if (platforms) {
+      platforms.animate(animation);
+      const grip = climbing.grip
+        .map((grip, hand) => ({ ...(grip || {}), hand }))
+        .filter(({ mesh }) => (mesh))
+        .sort(({ time: a }, { time: b }) => (b - a));
+      if (grip.length) {
+        if (
+          grip.length > 1
+          && (grip[0].mesh === platforms || grip[1].mesh === platforms)
+          && (grip[0].mesh !== grip[1].mesh || grip[0].index !== grip[1].index)
+        ) {
+          climbing.grip[grip[1].hand] = false;
+        }
+        if (grip[0].mesh === platforms) {
+          player.move(
+            climbing.movement.copy(platforms.getMovement(grip[0].index)).negate()
+          );
+        }
+      }
+    }
+
     let isOnElevator = false;
     elevators.forEach((elevator) => {
       elevator.animate(animation);
@@ -465,16 +597,6 @@ class Gameplay extends Group {
     });
     if (!physics || isOnElevator) {
       return;
-    }
-    if (this.isInsideGeometry()) {
-      effects.suffocating.trigger();
-      player.controllers.forEach((controller) => {
-        if (controller.hand) {
-          controller.pulse(0.6, 10);
-        }
-      });
-    } else if (effects.suffocating.visible) {
-      effects.suffocating.reset();
     }
     [
       player.desktopControls,
@@ -518,7 +640,7 @@ class Gameplay extends Group {
     ammo.reload();
     climbing.grip[0] = false;
     climbing.grip[1] = false;
-    climbing.isFalling = false;
+    player.isOnAir = false;
     effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
