@@ -30,7 +30,7 @@ class Tower extends Gameplay {
     });
 
     super({
-      climbablesPhysics: 'models/towerPhysics.json',
+      climbables: 'models/towerPhysics.json',
       elevators,
       groundColor: 0x05bb7c,
       platforms: {

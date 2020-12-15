@@ -20,7 +20,8 @@ import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
   constructor({
-    climbablesPhysics = false,
+    climbables = false,
+    effects = false,
     elevators,
     defaultAmmo = 10,
     groundColor = 0,
@@ -74,29 +75,27 @@ class Gameplay extends Group {
       player.attach(counter, hand);
     });
 
-    this.effects = [
-      {
-        id: 'burning',
-        color: 0xFF0000,
-        onEnd: () => this.respawn(),
-      },
-    ].reduce((effects, {
-      id,
-      color,
-      onEnd,
-      onTrigger,
-    }) => {
-      const effect = new Effect({
-        anchor: player.head,
+    if (effects) {
+      this.effects = effects.reduce((effects, {
+        id,
         color,
         onEnd,
         onTrigger,
-      });
-      this.add(effect);
-      effects[id] = effect;
-      effects.list.push(effect);
-      return effects;
-    }, { list: [] });
+        speed,
+      }) => {
+        const effect = new Effect({
+          anchor: player.head,
+          color,
+          onEnd,
+          onTrigger,
+          speed,
+        });
+        this.add(effect);
+        effects[id] = effect;
+        effects.list.push(effect);
+        return effects;
+      }, { list: [] });
+    }
 
     this.explosions = [...Array(50)].map(() => {
       const explosion = new Explosion({ sfx });
@@ -331,14 +330,14 @@ class Gameplay extends Group {
 
     Promise.all([
       scene.getPhysics(),
-      climbablesPhysics ? models.physics(climbablesPhysics, 0.5) : Promise.resolve(),
+      climbables ? models.physics(climbables, 0.5) : Promise.resolve(),
       models.physics('models/rocketPhysics.json', 0.25),
       terrainPhysics ? models.physics(terrainPhysics, 0.5) : Promise.resolve(),
     ])
-      .then(([/* physics */, climbablesPhysics, rocketPhysics, terrainPhysics]) => {
+      .then(([/* physics */, climbables, rocketPhysics, terrainPhysics]) => {
         translocables.push(ground);
-        if (climbablesPhysics) {
-          climbablesPhysics.forEach((box) => {
+        if (climbables) {
+          climbables.forEach((box) => {
             translocables.push(box);
             this.physics.addMesh(box, 0, { isClimbable: true });
             this.add(box);
@@ -388,7 +387,9 @@ class Gameplay extends Group {
     } = this;
     birds.animate(animation);
     clouds.animate(animation);
-    effects.list.forEach((effect) => effect.animate(animation));
+    if (effects) {
+      effects.list.forEach((effect) => effect.animate(animation));
+    }
     explosions.forEach((explosion) => explosion.animate(animation));
     if (peers) {
       peers.animate(animation);
@@ -491,7 +492,9 @@ class Gameplay extends Group {
     } = this;
     ammo.reload();
     climbing.reset();
-    effects.list.forEach((effect) => effect.reset());
+    if (effects) {
+      effects.list.forEach((effect) => effect.reset());
+    }
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
     player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);

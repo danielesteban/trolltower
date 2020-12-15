@@ -5,6 +5,13 @@ import Lava from '../renderables/lava.js';
 class Pit extends Gameplay {
   constructor(scene, { offset, instance }) {
     super({
+      effects: [
+        {
+          id: 'burning',
+          color: 0xFF0000,
+          onEnd: () => this.respawn(),
+        },
+      ],
       elevators: [
         { position: new Vector3(0, 2.5, -31.75), rotation: 0 },
         { position: new Vector3(0, 2.5, 31.75), rotation: Math.PI },

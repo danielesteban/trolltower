@@ -5,7 +5,14 @@ import Lava from '../renderables/lava.js';
 class Well extends Gameplay {
   constructor(scene, { offset, instance }) {
     super({
-      climbablesPhysics: 'models/wellPhysics.json',
+      climbables: 'models/wellPhysics.json',
+      effects: [
+        {
+          id: 'burning',
+          color: 0xFF0000,
+          onEnd: () => this.respawn(),
+        },
+      ],
       elevators: [
         { position: new Vector3(13.25, 33.5, 0), rotation: Math.PI * -0.5 },
         { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },

@@ -25,6 +25,7 @@ class Effect extends Mesh {
     color,
     onEnd,
     onTrigger,
+    speed = 0.5,
   }) {
     if (!Effect.geometry) {
       Effect.setupGeometry();
@@ -39,6 +40,7 @@ class Effect extends Mesh {
     this.anchor = anchor;
     this.onEnd = onEnd;
     this.onTrigger = onTrigger;
+    this.speed = speed;
     this.material.color.setHex(color);
     this.material.opacity = 0;
     this.matrixAutoUpdate = false;
@@ -52,6 +54,7 @@ class Effect extends Mesh {
       material,
       onEnd,
       position,
+      speed,
       visible,
     } = this;
     if (!visible) {
@@ -60,7 +63,7 @@ class Effect extends Mesh {
     position.copy(anchor.position);
     this.updateMatrix();
     this.updateMatrixWorld();
-    material.opacity = Math.min(material.opacity + delta * 0.5, 0.9);
+    material.opacity = Math.min(material.opacity + delta * speed, 0.9);
     if (material.opacity === 0.9) {
       this.reset();
       if (onEnd) {

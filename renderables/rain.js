@@ -32,7 +32,7 @@ class Rain extends Mesh {
     Rain.material = new ShaderMaterial({
       uniforms: {
         ...UniformsUtils.clone(uniforms),
-        diffuse: { value: new Color(0xa5aad8) },
+        diffuse: { value: new Color(0x1f3847) },
       },
       vertexShader: vertexShader
         .replace(

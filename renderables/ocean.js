@@ -29,7 +29,7 @@ class Ocean extends InstancedMesh {
 
   static setupMaterial() {
     Ocean.material = new MeshBasicMaterial({
-      color: 0x336688,
+      color: 0x1f3847,
       transparent: true,
       opacity: 0.6,
       vertexColors: true,
