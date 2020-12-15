@@ -517,7 +517,7 @@ async function AmmoPhysics() {
       const distance = contactPoint.getDistance();
       if (
         distance >= 0
-        || (options.climbable && !body.flags.isClimbable)
+        || (options.climbable && !(body.flags && body.flags.isClimbable))
         || (options.static && !body.isStaticObject())
       ) {
         return;
@@ -718,18 +718,19 @@ async function AmmoPhysics() {
       const bodyB = Ammo.castObject( contactManifold.getBody1(), Ammo.btRigidBody );
       
       if (
-        bodyA.flags.isTrigger || bodyB.flags.isTrigger
+        (bodyA.flags && bodyA.flags.isTrigger)
+        || (bodyB.flags && bodyB.flags.isTrigger)
       ) {
 
         let body;
         let trigger;
 
-        if (bodyA.flags.isTrigger) {
+        if (bodyA.flags && bodyA.flags.isTrigger) {
 
           body = bodyB;
           trigger = bodyA;
 
-        } else if (bodyB.flags.isTrigger) {
+        } else if (bodyB.flags && bodyB.flags.isTrigger) {
 
           body = bodyA;
           trigger = bodyB;

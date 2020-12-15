@@ -1,4 +1,4 @@
-import { Scene as ThreeScene, Vector3 } from './three.js';
+import { Scene as ThreeScene } from './three.js';
 import Ambient from './ambient.js';
 import { AmmoPhysics } from './ammo.js';
 import CurveCast from './curvecast.js';
