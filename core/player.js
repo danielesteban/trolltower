@@ -221,14 +221,20 @@ class Player extends Group {
     });
     desktopControls.onAnimationTick({ camera, delta, player: this });
     if (destination) {
-      const step = speed * delta;
+      let step = speed * delta;
       const distance = destination.distanceTo(position);
       if (distance <= step) {
-        position.copy(destination);
         delete this.destination;
-        return;
+        step = distance;
       }
-      position.addScaledVector(direction, step);
+      vector.copy(direction).multiplyScalar(step);
+      position.add(vector);
+      head.position.add(vector);
+      controllers.forEach(({ hand, worldspace }) => {
+        if (hand) {
+          worldspace.position.add(vector);
+        }
+      });
     }
   }
 
