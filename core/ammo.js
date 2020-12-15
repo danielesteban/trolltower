@@ -194,8 +194,8 @@ async function AmmoPhysics() {
     const body = new AmmoLib.btRigidBody( rbInfo );
     Ammo.destroy(rbInfo);
 
+    body.flags = flags;
     body.mesh = mesh;
-    body.isTrigger = flags.isTrigger;
     body.shape = shape;
 
     if ( flags.noContactResponse ) {
@@ -254,9 +254,9 @@ async function AmmoPhysics() {
       const body = new AmmoLib.btRigidBody( rbInfo );
       Ammo.destroy(rbInfo);
 
+      body.flags = flags;
       body.mesh = mesh;
       body.index = i;
-      body.isTrigger = flags.isTrigger;
       body.shape = shape;
 
       if ( flags.noContactResponse ) {
@@ -515,10 +515,14 @@ async function AmmoPhysics() {
         normal = { x: normal.x() * -1, y: normal.y() * -1, z: normal.z() * -1 };
       }
       const distance = contactPoint.getDistance();
-      if (!body.isStaticObject() || distance >= 0) {
+      if (
+        distance >= 0
+        || (options.climbable && !body.flags.isClimbable)
+        || (options.static && !body.isStaticObject())
+      ) {
         return;
       }
-      results.push({ distance, normal });
+      results.push({ body, distance, normal });
     };
 
     ghostObject.setCollisionShape( shape );
@@ -539,7 +543,7 @@ async function AmmoPhysics() {
 
     Ammo.destroy(shape);
 
-    return results;
+    return results.sort(({ distance: a }, { distance: b }) => (a - b));
 
   }
 
@@ -714,18 +718,18 @@ async function AmmoPhysics() {
       const bodyB = Ammo.castObject( contactManifold.getBody1(), Ammo.btRigidBody );
       
       if (
-        bodyA.isTrigger || bodyB.isTrigger
+        bodyA.flags.isTrigger || bodyB.flags.isTrigger
       ) {
 
         let body;
         let trigger;
 
-        if (bodyA.isTrigger) {
+        if (bodyA.flags.isTrigger) {
 
           body = bodyB;
           trigger = bodyA;
 
-        } else if (bodyB.isTrigger) {
+        } else if (bodyB.flags.isTrigger) {
 
           body = bodyA;
           trigger = bodyB;

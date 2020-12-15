@@ -1,9 +1,7 @@
 import {
-  Box3,
   Color,
   Group,
   Matrix4,
-  Sphere,
   Vector3,
 } from './three.js';
 import Peers from './peers.js';
@@ -53,13 +51,10 @@ class Gameplay extends Group {
     this.add(this.clouds);
 
     this.climbing = {
-      collision: new Box3(),
-      collisionMatrix: new Matrix4(),
       bodyScale: 1,
       grip: [false, false],
-      hand: new Sphere(new Vector3(), 0.1),
+      hand: new Vector3(),
       lastMovement: new Vector3(),
-      meshes: [],
       movement: new Vector3(),
       normal: new Vector3(),
       velocity: new Vector3(),
@@ -315,8 +310,7 @@ class Gameplay extends Group {
             model,
           });
           this.add(this.platforms);
-          this.climbing.meshes.push(this.platforms);
-          this.physics.addMesh(this.platforms, 0, { isKinematic: true });
+          this.physics.addMesh(this.platforms, 0, { isClimbable: true, isKinematic: true });
         });
     }
 
@@ -352,8 +346,7 @@ class Gameplay extends Group {
         if (climbablesPhysics) {
           climbablesPhysics.forEach((box) => {
             translocables.push(box);
-            this.climbing.meshes.push(box);
-            this.physics.addMesh(box);
+            this.physics.addMesh(box, 0, { isClimbable: true });
             this.add(box);
           });
         }
@@ -420,45 +413,31 @@ class Gameplay extends Group {
     if (!rocket.enabled && physics) {
       let activeHands = 0;
       climbing.movement.set(0, 0, 0);
-      player.controllers.forEach((controller, index) => {
+      player.controllers.forEach((controller, hand) => {
         if (
           controller.hand
           && controller.buttons.gripDown
           && !(player.isOnAir && climbing.velocity.length() < -5)
         ) {
-          let grip;
-          climbing.hand.center
+          climbing.hand
             .copy(controller.physics.position)
             .applyQuaternion(controller.worldspace.quaternion)
             .add(controller.worldspace.position);
-          for (let i = 0, l = climbing.meshes.length; !grip && i < l; i += 1) {
-            const mesh = climbing.meshes[i];
-            if (!mesh.collision || mesh.collisionAutoUpdate) {
-              mesh.collision = (mesh.collision || new Box3()).setFromObject(mesh);
-            }
-            if (mesh.isInstancedMesh) {
-              for (let j = 0, c = mesh.count; j < c; j += 1) {
-                mesh.getMatrixAt(j, climbing.collisionMatrix);
-                climbing.collision
-                  .copy(mesh.collision)
-                  .applyMatrix4(climbing.collisionMatrix);
-                if (climbing.collision.intersectsSphere(climbing.hand)) {
-                  grip = { mesh, index: j, time: animation.time };
-                  break;
-                }
-              }
-            } else if (mesh.collision.intersectsSphere(climbing.hand)) {
-              grip = { mesh, time: animation.time };
-            }
-          }
-          if (grip) {
-            climbing.grip[index] = grip;
+          const contacts = this.physics.contactTest({
+            climbable: true,
+            shape: 'sphere',
+            radius: 0.1,
+            position: climbing.hand,
+          });
+          if (contacts.length) {
+            const { mesh, index } = contacts[0].body;
+            climbing.grip[hand] = { mesh, index, time: animation.time };
             controller.pulse(0.3, 30);
           }
         }
-        if (climbing.grip[index]) {
+        if (climbing.grip[hand]) {
           if (!controller.hand || controller.buttons.gripUp || player.destination) {
-            climbing.grip[index] = false;
+            climbing.grip[hand] = false;
             if (!climbing.activeHands) {
               player.isOnAir = true;
               climbing.velocity.copy(climbing.lastMovement);
@@ -521,6 +500,7 @@ class Gameplay extends Group {
           + radius * 2
         );
         const contacts = this.physics.contactTest({
+          static: true,
           shape: 'capsule',
           radius,
           height: height - (radius * 2),
