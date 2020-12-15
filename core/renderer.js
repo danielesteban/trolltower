@@ -90,9 +90,7 @@ class Renderer {
       scene,
     } = this;
 
-    // Store the frame timings into the renderer
-    // So that they are accesible from onBeforeRender
-    renderer.animation = {
+    const animation = {
       delta: Math.min(clock.getDelta(), 1 / 30),
       time: clock.oldTime / 1000,
       serverTime: ((clock.localStartTime + clock.serverTimeOffset) / 1000) + clock.elapsedTime,
@@ -100,15 +98,25 @@ class Renderer {
 
     // Render scene
     if (scene) {
+      scene.player.updateMatrixWorld();
+      scene.onAnimationTick({
+        animation,
+        camera: renderer.xr.enabled && renderer.xr.isPresenting ? (
+          renderer.xr.getCamera(camera)
+        ) : (
+          camera
+        ),
+        xr: renderer.xr,
+      });
       renderer.render(scene, camera);
     }
 
     // Output debug info
     fps.count += 1;
-    if (renderer.animation.time >= fps.lastTick + 1) {
-      renderer.fps = Math.round(fps.count / (renderer.animation.time - fps.lastTick));
+    if (animation.time >= fps.lastTick + 1) {
+      renderer.fps = Math.round(fps.count / (animation.time - fps.lastTick));
       dom.fps.innerText = `${renderer.fps}fps`;
-      fps.lastTick = renderer.animation.time;
+      fps.lastTick = animation.time;
       fps.count = 0;
     }
   }

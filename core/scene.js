@@ -115,7 +115,7 @@ class Scene extends ThreeScene {
     this.add(this.world);
   }
 
-  onBeforeRender({ animation, xr }, scene, camera) {
+  onAnimationTick({ animation, camera, xr }) {
     const {
       ambient,
       climbing,
