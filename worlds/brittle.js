@@ -17,6 +17,16 @@ class Brittle extends Gameplay {
       elevators: [
         { position: new Vector3(0, 27, 0.75), rotation: Math.PI },
       ],
+      platforms: {
+        instances: [
+          {
+            origin: new Vector3(0, 28, -5.5),
+            direction: new Vector3(0, -7, -21),
+            speed: 0.5,
+          },
+        ],
+        model: 'models/platform.glb',
+      },
       pickups: {
         instances: [
           new Vector3(11, 22.5, -16.5),
