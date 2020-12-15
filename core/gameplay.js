@@ -36,12 +36,14 @@ class Gameplay extends Group {
     super();
 
     const {
+      climbing,
       models,
       player,
       sfx,
       translocables,
     } = scene;
 
+    this.climbing = climbing;
     this.player = player;
 
     this.birds = new Birds({ anchor: player });
@@ -49,17 +51,6 @@ class Gameplay extends Group {
 
     this.clouds = new Clouds();
     this.add(this.clouds);
-
-    this.climbing = {
-      bodyScale: 1,
-      grip: [false, false],
-      hand: new Vector3(),
-      lastMovement: new Vector3(),
-      movement: new Vector3(),
-      normal: new Vector3(),
-      velocity: new Vector3(),
-      worldUp: new Vector3(0, 1, 0),
-    };
 
     this.ammo = {
       counter: new Counter({
@@ -179,6 +170,9 @@ class Gameplay extends Group {
       },
       onTrigger: () => {
         rocket.movePlayer = rocket.bounds.containsPoint(player.head.position);
+        if (rocket.movePlayer) {
+          climbing.enabled = false;
+        }
         this.physics.removeConstraint(button.constraint);
         this.physics.removeMesh(button);
         rocket.worldToLocal(button.position.copy(button.initialPosition));
@@ -246,12 +240,12 @@ class Gameplay extends Group {
             false
           );
           if (
-            !player.isOnAir && !player.destination && player.head.position.distanceTo(point) < 1
+            !climbing.isOnAir && !player.destination && player.head.position.distanceTo(point) < 1
           ) {
-            this.climbing.grip[0] = false;
-            this.climbing.grip[1] = false;
-            this.climbing.velocity.set(0, 0, 0);
-            player.isOnAir = true;
+            climbing.grip[0] = false;
+            climbing.grip[1] = false;
+            climbing.isOnAir = true;
+            climbing.velocity.set(0, 0, 0);
           }
         };
         const matrix = new Matrix4();
@@ -392,7 +386,6 @@ class Gameplay extends Group {
       player,
       rocket,
     } = this;
-
     birds.animate(animation);
     clouds.animate(animation);
     effects.list.forEach((effect) => effect.animate(animation));
@@ -400,138 +393,6 @@ class Gameplay extends Group {
     if (peers) {
       peers.animate(animation);
     }
-    if (pickups) {
-      pickups.animate(animation);
-      player.controllers.forEach(({ hand, worldspace }) => {
-        if (hand) {
-          pickups.pickAtPoint(worldspace.position);
-        }
-      });
-    }
-    rocket.animate(animation);
-
-    if (!rocket.enabled && physics) {
-      let activeHands = 0;
-      climbing.movement.set(0, 0, 0);
-      player.controllers.forEach((controller, hand) => {
-        if (
-          controller.hand
-          && controller.buttons.gripDown
-          && !(player.isOnAir && climbing.velocity.length() < -5)
-        ) {
-          climbing.hand
-            .copy(controller.physics.position)
-            .applyQuaternion(controller.worldspace.quaternion)
-            .add(controller.worldspace.position);
-          const contacts = this.physics.contactTest({
-            climbable: true,
-            shape: 'sphere',
-            radius: 0.1,
-            position: climbing.hand,
-          });
-          if (contacts.length) {
-            const { mesh, index } = contacts[0].body;
-            climbing.grip[hand] = { mesh, index, time: animation.time };
-            controller.pulse(0.3, 30);
-          }
-        }
-        if (climbing.grip[hand]) {
-          if (!controller.hand || controller.buttons.gripUp || player.destination) {
-            climbing.grip[hand] = false;
-            if (!climbing.activeHands) {
-              player.isOnAir = true;
-              climbing.velocity.copy(climbing.lastMovement);
-            }
-          } else {
-            climbing.movement.add(controller.worldspace.movement);
-            activeHands += 1;
-            player.isOnAir = false;
-          }
-        }
-      });
-      const jumpGrip = (
-        player.controllers[0].hand && player.controllers[0].buttons.grip
-        && player.controllers[1].hand && player.controllers[1].buttons.grip
-      );
-      if (
-        !activeHands
-        && jumpGrip
-        && !player.isOnAir
-        && !player.destination
-        && !climbing.jumping
-      ) {
-        climbing.jumping = true;
-      }
-      if (climbing.jumping) {
-        if (jumpGrip) {
-          activeHands = 2;
-          climbing.movement.addVectors(
-            player.controllers[0].worldspace.movement,
-            player.controllers[1].worldspace.movement
-          );
-        } else {
-          climbing.jumping = false;
-          player.isOnAir = true;
-          climbing.velocity.copy(climbing.lastMovement);
-        }
-      }
-      if (activeHands) {
-        player.move(
-          climbing.movement.divideScalar(activeHands).negate()
-        );
-        climbing.bodyScale = 0;
-        climbing.lastMovement.copy(climbing.movement).divideScalar(animation.delta);
-      } else if (player.isOnAir && !player.destination) {
-        climbing.velocity.y -= 9.8 * animation.delta;
-        player.move(
-          climbing.movement.copy(climbing.velocity).multiplyScalar(animation.delta)
-        );
-      }
-
-      if (!player.destination) {
-        if (!activeHands && climbing.bodyScale < 1) {
-          climbing.bodyScale = (
-            Math.min(Math.max(climbing.bodyScale + animation.delta * 2, 0.45), 1)
-          );
-        }
-        const radius = 0.15;
-        const height = (
-          Math.max(player.head.position.y - player.position.y - radius, 0) * climbing.bodyScale ** 2
-          + radius * 2
-        );
-        const contacts = this.physics.contactTest({
-          static: true,
-          shape: 'capsule',
-          radius,
-          height: height - (radius * 2),
-          position: {
-            x: player.head.position.x,
-            y: (player.head.position.y + radius) - height * 0.5,
-            z: player.head.position.z,
-          },
-        });
-        if (contacts.length) {
-          climbing.movement.set(0, 0, 0);
-          contacts.forEach(({
-            distance,
-            normal,
-          }) => {
-            climbing.normal.copy(normal).normalize();
-            climbing.movement.addScaledVector(climbing.normal, -distance);
-            if (
-              climbing.bodyScale === 1
-              && climbing.normal.dot(climbing.worldUp) > 0
-            ) {
-              player.isOnAir = false;
-            }
-          });
-          if (climbing.movement.length()) {
-            player.move(climbing.movement);
-          }
-        }
-      }
-    }
-
     if (platforms) {
       platforms.animate(animation);
       const grip = climbing.grip
@@ -553,7 +414,18 @@ class Gameplay extends Group {
         }
       }
     }
-
+    if (pickups) {
+      pickups.animate(animation);
+      player.controllers.forEach(({ hand, worldspace }) => {
+        if (hand) {
+          pickups.pickAtPoint(worldspace.position);
+        }
+      });
+    }
+    rocket.animate(animation);
+    if (!physics) {
+      return;
+    }
     let isOnElevator = false;
     elevators.forEach((elevator) => {
       elevator.animate(animation);
@@ -575,7 +447,7 @@ class Gameplay extends Group {
         }
       }
     });
-    if (!physics || isOnElevator) {
+    if (isOnElevator) {
       return;
     }
     [
@@ -618,9 +490,7 @@ class Gameplay extends Group {
       player,
     } = this;
     ammo.reload();
-    climbing.grip[0] = false;
-    climbing.grip[1] = false;
-    player.isOnAir = false;
+    climbing.reset();
     effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));

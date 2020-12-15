@@ -24,7 +24,7 @@ class Controls extends Mesh {
     ctx.fillText('CONTROLS', renderer.width * 0.5, renderer.height * 0.15);
     ctx.font = '700 50px monospace';
     ctx.fillText('RIGHT JOYSTICK: Teleport', renderer.width * 0.5, renderer.height * 0.365);
-    ctx.fillText('GRIP: Climb', renderer.width * 0.5, renderer.height * 0.505);
+    ctx.fillText('GRIP: Climb/Jump', renderer.width * 0.5, renderer.height * 0.505);
     ctx.fillText('LEFT JOYSTICK: Rotate', renderer.width * 0.5, renderer.height * 0.645);
     ctx.fillText('TRIGGER: Activate elevator', renderer.width * 0.5, renderer.height * 0.785);
     ctx.fillText('         Launch projectile', renderer.width * 0.5, renderer.height * 0.925);

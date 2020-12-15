@@ -151,15 +151,16 @@ class Menu extends Group {
         this.physics = physics;
         boxes.forEach((box) => {
           translocables.push(box);
-          this.physics.addMesh(box);
+          this.physics.addMesh(box, 0, { isClimbable: true });
           this.add(box);
         });
         doors.forEach((door) => {
           this.physics.addMesh(door, 5);
           this.physics.addConstraint(door, door.hinge);
         });
+        this.physics.addMesh(player.head.physics, 0, { isKinematic: true });
         player.controllers.forEach((controller) => {
-          this.physics.addMesh(controller.physics, 0, { isKinematic: true, isTrigger: true });
+          this.physics.addMesh(controller.physics, 0, { isKinematic: true });
         });
       });
   }
