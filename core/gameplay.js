@@ -4,6 +4,7 @@ import {
   Matrix4,
   Vector3,
 } from './three.js';
+import Lightmap from './lightmap.js';
 import Peers from './peers.js';
 import Birds from '../renderables/birds.js';
 import Button from '../renderables/button.js';
@@ -21,10 +22,11 @@ import Spheres from '../renderables/spheres.js';
 class Gameplay extends Group {
   constructor({
     climbables = false,
+    defaultAmmo = 10,
     effects = false,
     elevators,
-    defaultAmmo = 10,
     groundColor = 0,
+    lightmap = false,
     platforms = false,
     pickups = false,
     rocketOrigin,
@@ -292,6 +294,21 @@ class Gameplay extends Group {
         });
       });
 
+    if (lightmap) {
+      Promise.all([
+        scene.getPhysics(),
+        models.lightmap(lightmap),
+      ])
+        .then(([/* physics */, lightmap]) => {
+          this.spheres.material = new Lightmap({
+            channels: lightmap.channels,
+            origin: lightmap.origin.clone().multiplyScalar(0.5),
+            size: lightmap.size.clone().multiplyScalar(0.5),
+            textures: [lightmap.texture],
+          });
+        });
+    }
+
     if (platforms) {
       Promise.all([
         scene.getPhysics(),
@@ -308,8 +325,24 @@ class Gameplay extends Group {
     }
 
     if (pickups) {
-      models.load(pickups.model)
-        .then(({ children: [{ children: [model] }] }) => {
+      Promise.all([
+        models.load(pickups.model),
+        lightmap ? models.lightmap(lightmap) : Promise.resolve(),
+      ])
+        .then(([{ children: [{ children: [model] }] }, lightmap]) => {
+          model = {
+            geometry: model.geometry,
+            material: model.material,
+          };
+          if (lightmap) {
+            Lightmap.swapMaterials(model, new Lightmap({
+              blending: 0.9,
+              channels: lightmap.channels,
+              origin: lightmap.origin.clone().multiplyScalar(0.5),
+              size: lightmap.size.clone().multiplyScalar(0.5),
+              textures: [lightmap.texture],
+            }));
+          }
           this.pickups = new Pickups({
             instances: pickups.instances,
             model,

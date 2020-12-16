@@ -10,13 +10,14 @@ class Brittle extends Gameplay {
         {
           id: 'falling',
           color: 0,
-          speed: 2,
+          speed: 1,
           onEnd: () => this.respawn(),
         },
       ],
       elevators: [
         { position: new Vector3(0, 27, 0.75), rotation: Math.PI },
       ],
+      lightmap: 'models/brittleLightmap.json',
       platforms: {
         instances: [
           {
@@ -74,7 +75,7 @@ class Brittle extends Gameplay {
     const { effects, player, rain } = this;
     super.onAnimationTick(animation);
     rain.animate(animation);
-    if (player.head.position.y < 8) {
+    if (player.head.position.y < 9) {
       effects.falling.trigger();
       player.controllers.forEach((controller) => {
         if (controller.hand) {

@@ -1,8 +1,11 @@
 import {
   BoxBufferGeometry,
+  DataTexture3D,
   GLTFLoader,
+  LinearFilter,
   Mesh,
   MeshBasicMaterial,
+  Vector3,
 } from './three.js';
 
 class Models {
@@ -10,6 +13,7 @@ class Models {
     this.loader = new GLTFLoader();
     this.bodies = new Map();
     this.models = new Map();
+    this.lightmaps = new Map();
   }
 
   load(model) {
@@ -32,6 +36,44 @@ class Models {
         cache.promises.push(resolve);
       } else {
         resolve(cache.model.clone());
+      }
+    });
+  }
+
+  lightmap(lightmap) {
+    const { lightmaps } = this;
+    return new Promise((resolve) => {
+      let cache = lightmaps.get(lightmap);
+      if (!cache) {
+        cache = {
+          loading: true,
+          promises: [resolve],
+        };
+        lightmaps.set(lightmap, cache);
+        fetch(lightmap)
+          .then((res) => res.json())
+          .then((lightmap) => {
+            cache.loading = false;
+            const texture = new DataTexture3D(
+              new Uint8ClampedArray(atob(lightmap.data).split('').map((c) => c.charCodeAt(0))),
+              lightmap.size.x, lightmap.size.y, lightmap.size.z
+            );
+            texture.minFilter = LinearFilter;
+            texture.magFilter = LinearFilter;
+            texture.unpackAlignment = 1;
+            cache.lightmap = {
+              channels: lightmap.channels,
+              origin: new Vector3(lightmap.origin.x, lightmap.origin.y, lightmap.origin.z),
+              size: new Vector3(lightmap.size.x, lightmap.size.y, lightmap.size.z),
+              texture,
+            };
+            cache.promises.forEach((resolve) => resolve(cache.lightmap));
+            delete cache.promises;
+          });
+      } else if (cache.loading) {
+        cache.promises.push(resolve);
+      } else {
+        resolve(cache.lightmap);
       }
     });
   }
