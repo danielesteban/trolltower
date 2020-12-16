@@ -240,7 +240,10 @@ class Gameplay extends Group {
             false
           );
           if (
-            !climbing.isOnAir && !player.destination && player.head.position.distanceTo(point) < 1
+            climbing.enabled
+            && !climbing.isOnAir
+            && !player.destination
+            && player.head.position.distanceTo(point) < 1
           ) {
             climbing.grip[0] = false;
             climbing.grip[1] = false;
