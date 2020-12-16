@@ -7,7 +7,7 @@
   </head>
   <body>
     <div id="wrapper">
-      <h5>Live</h5>
+      <h5>Worlds</h5>
       <div id="peers"></div>
       <h5>Last 48H</h5>
       <canvas id="graphA" class="graph"></canvas>
@@ -33,7 +33,7 @@
         count.className = 'count';
         div.appendChild(count);
         dom.peers.appendChild(div);
-        return { id: room, div, bar, count };
+        return { id: room, bar, count };
       });
       const sound = new Audio();
       sound.src = 'sounds/ding.ogg';
@@ -50,9 +50,8 @@
             }, {});
             const previous = count;
             count = rooms.reduce((total, room) => {
-              room.div.className = `room${peers[room] ? ' active' : ''}`;
-              room.count.innerText = peers[room] || 0;
-              return total + (peers[room] || 0);
+              room.count.innerText = peers[room.id] || 0;
+              return total + (peers[room.id] || 0);
             }, 0);
             if (count > previous) {
               sound.play();
@@ -155,9 +154,6 @@
       }
       .room:first-child {
         border-top: 1px dashed #010;
-      }
-      .room.active {
-        background: #393;
       }
       .bar {
         position: absolute;
