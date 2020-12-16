@@ -185,9 +185,9 @@ class Gameplay extends Group {
         this.add(button);
         this.physics.addMesh(button, 1);
         button.constraint = this.physics.addConstraint(button, button.slider);
-        for (let i = 0; i < this.spheres.count; i += 1) {
+        for (let i = 0; i < this.projectiles.count; i += 1) {
           this.physics.setMeshPosition(
-            this.spheres,
+            this.projectiles,
             vector.set(0, 0.2, -1000 - i),
             i,
             false
@@ -222,19 +222,30 @@ class Gameplay extends Group {
 
         this.physics.addMesh(ground);
 
-        this.sphere = 0;
-        this.spheres = new Spheres({
+        this.projectile = 0;
+        this.projectiles = new Spheres({
           count: 50,
           sfx,
           sound: 'sounds/shot.ogg',
         });
-        this.spheres.destroyOnContact = ({ mesh, index, point }) => {
-          if (mesh !== this.spheres) {
+        if (lightmap) {
+          models.lightmap(lightmap)
+            .then((lightmap) => {
+              this.projectiles.material = new Lightmap({
+                channels: lightmap.channels,
+                origin: lightmap.origin.clone().multiplyScalar(0.5),
+                size: lightmap.size.clone().multiplyScalar(0.5),
+                textures: [lightmap.texture],
+              });
+            });
+        }
+        this.projectiles.destroyOnContact = ({ mesh, index, point }) => {
+          if (mesh !== this.projectiles) {
             return;
           }
-          this.spawnExplosion(point, this.spheres.getColorAt(index, color));
+          this.spawnExplosion(point, this.projectiles.getColorAt(index, color));
           this.physics.setMeshPosition(
-            this.spheres,
+            this.projectiles,
             vector.set(0, 0.2, -1000 - index),
             index,
             false
@@ -252,16 +263,16 @@ class Gameplay extends Group {
           }
         };
         const matrix = new Matrix4();
-        for (let i = 0; i < this.spheres.count; i += 1) {
+        for (let i = 0; i < this.projectiles.count; i += 1) {
           matrix.setPosition(0, 0.2, -1000 - i);
-          this.spheres.setMatrixAt(i, matrix);
+          this.projectiles.setMatrixAt(i, matrix);
         }
-        this.physics.addMesh(this.spheres, 1, { isSleeping: true });
-        this.add(this.spheres);
+        this.physics.addMesh(this.projectiles, 1, { isSleeping: true });
+        this.add(this.projectiles);
 
         this.peers = new Peers({
           onJoin: (peer) => {
-            peer.head.onContact = this.spheres.destroyOnContact;
+            peer.head.onContact = this.projectiles.destroyOnContact;
             this.physics.addMesh(peer.head, 0, { isKinematic: true, isTrigger: true });
           },
           onLeave: (peer) => {
@@ -280,7 +291,7 @@ class Gameplay extends Group {
               }
             } else if (buffer.byteLength === 24) {
               const [x, y, z, ix, iy, iz] = new Float32Array(buffer);
-              this.spawnSphere({ x, y, z }, { x: ix, y: iy, z: iz });
+              this.spawnProjectile({ x, y, z }, { x: ix, y: iy, z: iz });
             }
           },
           player,
@@ -288,28 +299,13 @@ class Gameplay extends Group {
         });
         this.add(this.peers);
 
-        player.head.physics.onContact = this.spheres.destroyOnContact;
+        player.head.physics.onContact = this.projectiles.destroyOnContact;
         this.physics.addMesh(player.head.physics, 0, { isKinematic: true, isTrigger: true });
 
         player.controllers.forEach((controller) => {
           this.physics.addMesh(controller.physics, 0, { isKinematic: true });
         });
       });
-
-    if (lightmap) {
-      Promise.all([
-        scene.getPhysics(),
-        models.lightmap(lightmap),
-      ])
-        .then(([/* physics */, lightmap]) => {
-          this.spheres.material = new Lightmap({
-            channels: lightmap.channels,
-            origin: lightmap.origin.clone().multiplyScalar(0.5),
-            size: lightmap.size.clone().multiplyScalar(0.5),
-            textures: [lightmap.texture],
-          });
-        });
-    }
 
     if (platforms) {
       Promise.all([
@@ -507,7 +503,7 @@ class Gameplay extends Group {
           .clone()
           .addScaledVector(direction, 0.5);
         const impulse = direction.clone().multiplyScalar(16);
-        this.spawnSphere(position, impulse);
+        this.spawnProjectile(position, impulse);
         peers.broadcast(new Uint8Array(new Float32Array([
           position.x, position.y, position.z,
           impulse.x, impulse.y, impulse.z,
@@ -555,19 +551,19 @@ class Gameplay extends Group {
     }
   }
 
-  spawnSphere(position, impulse) {
-    const { physics, sphere, spheres } = this;
+  spawnProjectile(position, impulse) {
+    const { physics, projectile, projectiles } = this;
     if (!this.physics) {
       return;
     }
-    this.sphere = (this.sphere + 1) % spheres.count;
+    this.projectile = (this.projectile + 1) % projectiles.count;
     physics.setMeshPosition(
-      spheres,
+      projectiles,
       position,
-      sphere
+      projectile
     );
-    physics.applyImpulse(spheres, impulse, sphere);
-    spheres.playSound(position);
+    physics.applyImpulse(projectiles, impulse, projectile);
+    projectiles.playSound(position);
   }
 
   onUnload() {

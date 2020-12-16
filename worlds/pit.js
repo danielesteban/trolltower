@@ -67,7 +67,7 @@ class Pit extends Gameplay {
 
     scene.getPhysics()
       .then(() => {
-        lava.onContact = this.spheres.destroyOnContact;
+        lava.onContact = this.projectiles.destroyOnContact;
         this.physics.addMesh(lava, 0, { isTrigger: true });
       });
   }

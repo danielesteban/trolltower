@@ -4,6 +4,7 @@ import {
   Matrix4,
   MeshBasicMaterial,
 } from '../core/three.js';
+import Lightmap from '../core/lightmap.js';
 
 class Bodies extends InstancedMesh {
   static setupMaterial() {
@@ -12,7 +13,14 @@ class Bodies extends InstancedMesh {
     });
   }
 
-  constructor({ count, material, geometry }) {
+  constructor({
+    count,
+    geometry,
+    material,
+    sfx,
+    sound,
+    soundCount = 10,
+  }) {
     if (!Bodies.material) {
       Bodies.setupMaterial();
     }
@@ -26,6 +34,22 @@ class Bodies extends InstancedMesh {
       this.setColorAt(i, color.setHex(0xFFFFFF * Math.random()));
     }
     this.auxMatrix = new Matrix4();
+    if (sfx && sound && soundCount > 0) {
+      Promise.all([...Array(soundCount)].map(() => (
+        sfx.load(sound)
+          .then((sound) => {
+            sound.filter = sound.context.createBiquadFilter();
+            sound.setFilter(sound.filter);
+            sound.setRefDistance(2);
+            sound.setVolume(1 / 3);
+            this.add(sound);
+            return sound;
+          })
+      )))
+        .then((sounds) => {
+          this.sounds = sounds;
+        });
+    }
   }
 
   getColorAt(index, color) {
@@ -37,6 +61,19 @@ class Bodies extends InstancedMesh {
     const { auxMatrix } = this;
     this.getMatrixAt(index, auxMatrix);
     return position.setFromMatrixPosition(auxMatrix);
+  }
+
+  playSound(position) {
+    const { sounds } = this;
+    if (!sounds) {
+      return;
+    }
+    const sound = sounds.find(({ isPlaying }) => (!isPlaying));
+    if (sound && sound.context.state === 'running') {
+      sound.filter.frequency.value = (Math.random() + 0.5) * 1000;
+      sound.position.copy(position);
+      sound.play();
+    }
   }
 }
 
