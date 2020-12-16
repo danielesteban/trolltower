@@ -12,6 +12,7 @@ class Elevator extends Group {
     this.bounds = new Box3();
     this.isOpen = isOpen;
     this.onOpen = onOpen;
+    this.origin = new Vector3(0, 2, -7);
     this.translocables = [];
     this.rotation.order = 'YXZ';
     if (isOpen && onOpen) {

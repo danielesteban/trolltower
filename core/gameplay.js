@@ -139,9 +139,8 @@ class Gameplay extends Group {
         player.teleport(origin);
         player.rotate(elevator.rotation.y - offset.rotation);
       } else {
-        elevator.localToWorld(origin.set(0, 2, -7));
-        player.teleport(origin);
-        player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
+        player.teleport(elevator.localToWorld(origin.copy(elevator.origin)));
+        player.rotate(elevator.rotation.y - Math.PI);
       }
     }
 
@@ -529,7 +528,10 @@ class Gameplay extends Group {
       effects.list.forEach((effect) => effect.reset());
     }
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
-    player.teleport(elevator.localToWorld(new Vector3(0, 2, -7)));
+    player.teleport(elevator.localToWorld(
+      (new Vector3((Math.random() - 0.5) * 4, 0, (Math.random() - 0.5) * 4))
+        .add(elevator.origin)
+    ));
     player.rotate(elevator.rotation.y - Math.PI - player.head.rotation.y);
     this.spawn = elevator;
     this.syncTimeOffset();
