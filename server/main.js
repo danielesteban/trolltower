@@ -79,9 +79,12 @@ server.get('/peers', cors({ origin: allowedOrigins || true }), nocache(), (req, 
 
 if (stats) {
   server.get('/stats', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
-    stats.getClientsByHour({ room: 'Menu' })
-      .then((clients) => (
-        res.json(clients)
+    Promise.all([
+      stats.getClientsByHour({ room: 'Menu' }),
+      stats.getClientsByRoom(),
+    ])
+      .then(([hour, room]) => (
+        res.json({ hour, room })
       ))
   ));
 }

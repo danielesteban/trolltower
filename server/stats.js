@@ -34,9 +34,6 @@ class Stats {
         [Sequelize.literal('COUNT(*)'), 'count'],
       ],
       group: ['date'],
-      order: [
-        ['createdAt', 'DESC'],
-      ],
       where: {
         createdAt: { [Sequelize.Op.gt]: new Date(new Date() - 8 * 24 * 60 * 60 * 1000) },
         ...where,
@@ -46,6 +43,28 @@ class Stats {
       .then((clients) => (
         clients.reduce((clients, { date, count }) => {
           clients[date] = count;
+          return clients;
+        }, {})
+      ));
+  }
+
+  getClientsByRoom() {
+    const { clients } = this;
+    return clients.findAll({
+      attributes: [
+        'room',
+        [Sequelize.literal('COUNT(*)'), 'count'],
+      ],
+      group: ['room'],
+      where: {
+        createdAt: { [Sequelize.Op.gt]: new Date(new Date() - 8 * 24 * 60 * 60 * 1000) },
+        room: { [Sequelize.Op.not]: 'Menu' },
+      },
+      raw: true,
+    })
+      .then((clients) => (
+        clients.reduce((clients, { room, count }) => {
+          clients[room] = count;
           return clients;
         }, {})
       ));
