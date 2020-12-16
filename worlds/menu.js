@@ -138,7 +138,18 @@ class Menu extends Group {
       return door;
     });
 
-    const skin = new Skin(player.skin);
+    const skin = new Skin({
+      onSave: (texture) => {
+        player.skin = texture;
+        this.peers.peers.forEach(({ connection }) => {
+          if (connection) {
+            delete connection.hasSentSkin;
+          }
+        });
+        localStorage.setItem('trolltower::skin', texture);
+      },
+      texture: player.skin,
+    });
     skin.position.set(0, 1.5, 13);
     pointables.push(skin.pointables);
     this.add(skin);

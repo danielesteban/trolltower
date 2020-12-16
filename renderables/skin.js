@@ -3,8 +3,15 @@ import Head from './head.js';
 import UI from './ui.js';
 
 class Skin extends Group {
-  constructor(texture) {
+  constructor({
+    onSave,
+    texture,
+  }) {
     super();
+
+    const save = () => (
+      onSave(head.renderer.toDataURL())
+    );
 
     const head = new Head();
     head.onPointer = ({ buttons, uv }) => {
@@ -26,10 +33,6 @@ class Skin extends Group {
     head.updateTexture(texture, true);
     head.setLayer('transparent');
     this.add(head);
-
-    const save = () => (
-      localStorage.setItem('trolltower::skin', head.renderer.toDataURL())
-    );
 
     const setLayer = (layer) => {
       head.setLayer(layer);
