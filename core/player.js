@@ -182,8 +182,6 @@ class Player extends Group {
     attachments.right.length = 0;
   }
 
-  // This prolly needs some cleanup...
-  // But at least is now all together in a single place
   onAnimationTick({
     animation,
     camera,
@@ -254,7 +252,6 @@ class Player extends Group {
         );
       raycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotation);
     });
-    desktopControls.onAnimationTick({ animation, camera, player: this });
 
     // Animate translocation
     if (destination) {
@@ -267,11 +264,93 @@ class Player extends Group {
       vector.copy(direction).multiplyScalar(step);
       position.add(vector);
       head.position.add(vector);
-      controllers.forEach(({ hand, worldspace }) => {
+      controllers.forEach(({ hand, raycaster, worldspace }) => {
         if (hand) {
+          raycaster.ray.origin.add(vector);
           worldspace.position.add(vector);
         }
       });
+    }
+
+    // Climb
+    let climbingHands = 0;
+    if (climbing.enabled && !destination && physics) {
+      climbing.movement.set(0, 0, 0);
+      controllers.forEach((controller, hand) => {
+        if (
+          controller.hand
+          && controller.buttons.gripDown
+          && !(climbing.isOnAir && climbing.velocity.length() < -5)
+        ) {
+          climbing.hand
+            .copy(controller.physics.position)
+            .applyQuaternion(controller.worldspace.quaternion)
+            .add(controller.worldspace.position);
+          const contacts = physics.contactTest({
+            climbable: true,
+            shape: 'sphere',
+            radius: 0.1,
+            position: climbing.hand,
+          });
+          if (contacts.length) {
+            const { mesh, index } = contacts[0].body;
+            climbing.grip[hand] = { mesh, index, time: animation.time };
+            controller.pulse(0.3, 30);
+          }
+        }
+        if (climbing.grip[hand]) {
+          if (!controller.hand || controller.buttons.gripUp) {
+            climbing.grip[hand] = false;
+            if (!climbing.climbingHands) {
+              climbing.isOnAir = true;
+              climbing.velocity.copy(climbing.lastMovement);
+            }
+          } else {
+            climbing.movement.add(controller.worldspace.movement);
+            climbingHands += 1;
+            climbing.isOnAir = false;
+          }
+        }
+      });
+
+      // Jump
+      const jumpGrip = (
+        controllers[0].hand && controllers[0].buttons.grip
+        && controllers[1].hand && controllers[1].buttons.grip
+      );
+      if (
+        !climbingHands
+        && jumpGrip
+        && !climbing.isOnAir
+        && !climbing.isJumping
+      ) {
+        climbing.isJumping = true;
+      }
+      if (climbing.isJumping) {
+        if (jumpGrip) {
+          climbingHands = 2;
+          climbing.movement.addVectors(
+            controllers[0].worldspace.movement,
+            controllers[1].worldspace.movement
+          );
+        } else {
+          climbing.isJumping = false;
+          climbing.isOnAir = true;
+          climbing.velocity.copy(climbing.lastMovement);
+        }
+      }
+      if (climbingHands) {
+        this.move(
+          climbing.movement.divideScalar(climbingHands).negate()
+        );
+        climbing.bodyScale = 0;
+        climbing.lastMovement.copy(climbing.movement).divideScalar(animation.delta);
+      } else if (climbing.isOnAir) {
+        climbing.velocity.y -= 9.8 * animation.delta;
+        this.move(
+          climbing.movement.copy(climbing.velocity).multiplyScalar(animation.delta)
+        );
+      }
     }
 
     // Process input
@@ -292,8 +371,9 @@ class Player extends Group {
         return;
       }
       if (
-        !climbing.isOnAir
-        && !destination
+        !climbingHands
+        && !climbing.isOnAir
+        && !this.destination
         && hand.handedness === 'left'
         && (leftwardsDown || rightwardsDown)
       ) {
@@ -302,8 +382,9 @@ class Player extends Group {
         );
       }
       if (
-        !climbing.isOnAir
-        && !destination
+        !climbingHands
+        && !climbing.isOnAir
+        && !this.destination
         && hand.handedness === 'right'
         && (forwards || forwardsUp)
       ) {
@@ -319,6 +400,16 @@ class Player extends Group {
           }
         }
       }
+      if (
+        !climbingHands
+        && !climbing.isOnAir
+        && !this.destination
+        && secondaryDown
+        && xr.enabled
+        && xr.isPresenting
+      ) {
+        xr.getSession().end();
+      }
       if (pointables.length) {
         const hit = raycaster.intersectObjects(pointables.flat())[0] || false;
         if (hit) {
@@ -329,97 +420,12 @@ class Player extends Group {
           });
         }
       }
-      if (secondaryDown && xr.enabled && xr.isPresenting) {
-        xr.getSession().end();
-      }
     });
-
-    // Climb
-    if (!climbing.enabled || !physics) {
-      return;
-    }
-    let activeHands = 0;
-    climbing.movement.set(0, 0, 0);
-    controllers.forEach((controller, hand) => {
-      if (
-        controller.hand
-        && controller.buttons.gripDown
-        && !(climbing.isOnAir && climbing.velocity.length() < -5)
-      ) {
-        climbing.hand
-          .copy(controller.physics.position)
-          .applyQuaternion(controller.worldspace.quaternion)
-          .add(controller.worldspace.position);
-        const contacts = physics.contactTest({
-          climbable: true,
-          shape: 'sphere',
-          radius: 0.1,
-          position: climbing.hand,
-        });
-        if (contacts.length) {
-          const { mesh, index } = contacts[0].body;
-          climbing.grip[hand] = { mesh, index, time: animation.time };
-          controller.pulse(0.3, 30);
-        }
-      }
-      if (climbing.grip[hand]) {
-        if (!controller.hand || controller.buttons.gripUp || destination) {
-          climbing.grip[hand] = false;
-          if (!climbing.activeHands) {
-            climbing.isOnAir = true;
-            climbing.velocity.copy(climbing.lastMovement);
-          }
-        } else {
-          climbing.movement.add(controller.worldspace.movement);
-          activeHands += 1;
-          climbing.isOnAir = false;
-        }
-      }
-    });
-
-    // Jump
-    const jumpGrip = (
-      controllers[0].hand && controllers[0].buttons.grip
-      && controllers[1].hand && controllers[1].buttons.grip
-    );
-    if (
-      !activeHands
-      && jumpGrip
-      && !destination
-      && !climbing.isOnAir
-      && !climbing.isJumping
-    ) {
-      climbing.isJumping = true;
-    }
-    if (climbing.isJumping) {
-      if (jumpGrip) {
-        activeHands = 2;
-        climbing.movement.addVectors(
-          controllers[0].worldspace.movement,
-          controllers[1].worldspace.movement
-        );
-      } else {
-        climbing.isJumping = false;
-        climbing.isOnAir = true;
-        climbing.velocity.copy(climbing.lastMovement);
-      }
-    }
-    if (activeHands) {
-      this.move(
-        climbing.movement.divideScalar(activeHands).negate()
-      );
-      climbing.bodyScale = 0;
-      climbing.lastMovement.copy(climbing.movement).divideScalar(animation.delta);
-    } else if (climbing.isOnAir && !destination) {
-      climbing.velocity.y -= 9.8 * animation.delta;
-      this.move(
-        climbing.movement.copy(climbing.velocity).multiplyScalar(animation.delta)
-      );
-    }
+    desktopControls.onAnimationTick({ animation, camera, player: this });
 
     // Fall
-    if (!destination) {
-      if (!activeHands && climbing.bodyScale < 1) {
+    if (climbing.enabled && !this.destination && physics) {
+      if (!climbingHands && climbing.bodyScale < 1) {
         climbing.bodyScale = (
           Math.min(Math.max(climbing.bodyScale + animation.delta * 2, 0.45), 1)
         );
@@ -466,8 +472,9 @@ class Player extends Group {
     const { controllers, head, position } = this;
     position.add(offset);
     head.position.add(offset);
-    controllers.forEach(({ hand, worldspace }) => {
+    controllers.forEach(({ hand, raycaster, worldspace }) => {
       if (hand) {
+        raycaster.ray.origin.add(offset);
         worldspace.position.add(offset);
       }
     });
@@ -495,8 +502,9 @@ class Player extends Group {
     );
     this.applyMatrix4(transform);
     head.applyMatrix4(transform);
-    controllers.forEach(({ hand, worldspace }) => {
+    controllers.forEach(({ hand, raycaster, worldspace }) => {
       if (hand) {
+        raycaster.ray.origin.applyMatrix4(transform);
         worldspace.position.applyMatrix4(transform);
       }
     });
