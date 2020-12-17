@@ -49,15 +49,15 @@ class Brittle extends Gameplay {
       rocketRotation: Math.PI * 0.5,
       scene,
       offset,
-      room: `Test-${instance}`,
+      room: `Brittle-${instance}`,
     });
 
     const { ambient, models } = scene;
 
-    // ambient.set([
-    //   'sounds/rain.ogg',
-    //   'sounds/forest.ogg',
-    // ]);
+    ambient.set([
+      'sounds/rain.ogg',
+      'sounds/forest.ogg',
+    ]);
     scene.background = new Color(0x110A1A);
     scene.fog = new FogExp2(scene.background.getHex(), 0.03);
 
