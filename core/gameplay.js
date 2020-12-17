@@ -8,6 +8,7 @@ import Lightmap from './lightmap.js';
 import Peers from './peers.js';
 import Birds from '../renderables/birds.js';
 import Button from '../renderables/button.js';
+import Cannon from '../renderables/cannon.js';
 import Clouds from '../renderables/clouds.js';
 import Counter from '../renderables/counter.js';
 import Effect from '../renderables/effect.js';
@@ -21,6 +22,7 @@ import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
   constructor({
+    cannons = false,
     climbables = false,
     defaultAmmo = 10,
     effects = false,
@@ -39,14 +41,12 @@ class Gameplay extends Group {
     super();
 
     const {
-      climbing,
       models,
       player,
       sfx,
       translocables,
     } = scene;
 
-    this.climbing = climbing;
     this.player = player;
 
     this.birds = new Birds({ anchor: player });
@@ -171,7 +171,7 @@ class Gameplay extends Group {
       onTrigger: () => {
         rocket.movePlayer = rocket.bounds.containsPoint(player.head.position);
         if (rocket.movePlayer) {
-          climbing.enabled = false;
+          player.climbing.enabled = false;
         }
         this.physics.removeConstraint(button.constraint);
         this.physics.removeMesh(button);
@@ -186,9 +186,10 @@ class Gameplay extends Group {
         this.physics.addMesh(button, 1);
         button.constraint = this.physics.addConstraint(button, button.slider);
         for (let i = 0; i < this.projectiles.count; i += 1) {
-          this.physics.setMeshPosition(
+          this.physics.setMeshTransform(
             this.projectiles,
             vector.set(0, 0.2, -1000 - i),
+            null,
             i,
             false
           );
@@ -244,22 +245,23 @@ class Gameplay extends Group {
             return;
           }
           this.spawnExplosion(point, this.projectiles.getColorAt(index, color));
-          this.physics.setMeshPosition(
+          this.physics.setMeshTransform(
             this.projectiles,
             vector.set(0, 0.2, -1000 - index),
+            null,
             index,
             false
           );
           if (
-            climbing.enabled
-            && !climbing.isOnAir
+            player.climbing.enabled
+            && !player.climbing.isOnAir
             && !player.destination
             && player.head.position.distanceTo(point) < 1
           ) {
-            climbing.grip[0] = false;
-            climbing.grip[1] = false;
-            climbing.isOnAir = true;
-            climbing.velocity.set(0, 0, 0);
+            player.climbing.grip[0] = false;
+            player.climbing.grip[1] = false;
+            player.climbing.isOnAir = true;
+            player.climbing.velocity.set(0, 0, 0);
           }
         };
         const matrix = new Matrix4();
@@ -292,6 +294,26 @@ class Gameplay extends Group {
             } else if (buffer.byteLength === 24) {
               const [x, y, z, ix, iy, iz] = new Float32Array(buffer);
               this.spawnProjectile({ x, y, z }, { x: ix, y: iy, z: iz });
+            } else if (buffer.byteLength === 48) {
+              const [
+                instance,
+                bqx, bqy, bqz, bqw,
+                sqx, sqy, sqz, sqw,
+                spx, spy, spz,
+              ] = new Float32Array(buffer);
+              const cannon = this.cannons && this.cannons[instance];
+              if (cannon) {
+                this.physics.setMeshTransform(
+                  cannon.base,
+                  cannon.base.position,
+                  { x: bqx, y: bqy, z: bqz, w: bqw }
+                );
+                this.physics.setMeshTransform(
+                  cannon.shaft,
+                  { x: spx, y: spy, z: spz },
+                  { x: sqx, y: sqy, z: sqz, w: sqw }
+                );
+              }
             }
           },
           player,
@@ -306,6 +328,72 @@ class Gameplay extends Group {
           this.physics.addMesh(controller.physics, 0, { isKinematic: true });
         });
       });
+
+    if (cannons) {
+      Promise.all([
+        scene.getPhysics(),
+        models.load(cannons.model),
+        lightmap ? models.lightmap(lightmap) : Promise.resolve(),
+      ])
+        .then(([
+          /* physics */,
+          { children: [{ children: [base] }, { children: [shaft] }] },
+          lightmap,
+        ]) => {
+          const models = { base, shaft };
+          if (lightmap) {
+            const materials = {};
+            lightmap = new Lightmap({
+              blending: 0.9,
+              channels: lightmap.channels,
+              origin: lightmap.origin.clone().multiplyScalar(0.5),
+              size: lightmap.size.clone().multiplyScalar(0.5),
+              textures: [lightmap.texture],
+            });
+            models.base = models.base.clone();
+            models.shaft = models.shaft.clone();
+            Lightmap.swapMaterials(models.base, lightmap, materials);
+            Lightmap.swapMaterials(models.shaft, lightmap, materials);
+          }
+          this.cannons = cannons.instances.map(({ position }, instance) => {
+            const cannon = new Cannon({
+              models,
+              position,
+            });
+            cannon.lastShot = 0;
+            cannon.shaft.onContact = ({ mesh, time }) => {
+              if (
+                !player.controllers.find(({ hand, physics }) => (hand && mesh === physics))
+              ) {
+                return;
+              }
+              if (cannon.lastShot <= time - 0.5) {
+                cannon.lastShot = time;
+                const { direction, position } = cannon.getShot();
+                const impulse = direction.clone().multiplyScalar(16);
+                this.spawnProjectile(position, impulse);
+                this.peers.broadcast(new Uint8Array(new Float32Array([
+                  position.x, position.y, position.z,
+                  impulse.x, impulse.y, impulse.z,
+                ]).buffer));
+              }
+              const { base, shaft } = cannon;
+              this.peers.broadcast(new Uint8Array(new Float32Array([
+                instance,
+                base.quaternion.x, base.quaternion.y, base.quaternion.z, base.quaternion.w,
+                shaft.quaternion.x, shaft.quaternion.y, shaft.quaternion.z, shaft.quaternion.w,
+                shaft.position.x, shaft.position.y, shaft.position.z,
+              ]).buffer));
+            };
+            this.add(cannon);
+            this.physics.addMesh(cannon.base, 4);
+            this.physics.addConstraint(cannon.base, cannon.base.hinge);
+            this.physics.addMesh(cannon.shaft, 1, { isTrigger: true });
+            this.physics.addConstraint(cannon.base, cannon.shaft.hinge);
+            return cannon;
+          });
+        });
+    }
 
     if (platforms) {
       Promise.all([
@@ -404,7 +492,6 @@ class Gameplay extends Group {
     const {
       ammo,
       birds,
-      climbing,
       clouds,
       effects,
       elevators,
@@ -427,7 +514,7 @@ class Gameplay extends Group {
     }
     if (platforms) {
       platforms.animate(animation);
-      const grip = climbing.grip
+      const grip = player.climbing.grip
         .map((grip, hand) => ({ ...(grip || {}), hand }))
         .filter(({ mesh }) => (mesh))
         .sort(({ time: a }, { time: b }) => (b - a));
@@ -437,11 +524,11 @@ class Gameplay extends Group {
           && (grip[0].mesh === platforms || grip[1].mesh === platforms)
           && (grip[0].mesh !== grip[1].mesh || grip[0].index !== grip[1].index)
         ) {
-          climbing.grip[grip[1].hand] = false;
+          player.climbing.grip[grip[1].hand] = false;
         }
         if (grip[0].mesh === platforms) {
           player.move(
-            climbing.movement.copy(platforms.getMovement(grip[0].index)).negate()
+            player.climbing.movement.copy(platforms.getMovement(grip[0].index)).negate()
           );
         }
       }
@@ -516,13 +603,12 @@ class Gameplay extends Group {
   respawn() {
     const {
       ammo,
-      climbing,
       effects,
       elevators,
       player,
     } = this;
     ammo.reload();
-    climbing.reset();
+    player.climbing.reset();
     if (effects) {
       effects.list.forEach((effect) => effect.reset());
     }
@@ -557,9 +643,10 @@ class Gameplay extends Group {
       return;
     }
     this.projectile = (this.projectile + 1) % projectiles.count;
-    physics.setMeshPosition(
+    physics.setMeshTransform(
       projectiles,
       position,
+      null,
       projectile
     );
     physics.applyImpulse(projectiles, impulse, projectile);

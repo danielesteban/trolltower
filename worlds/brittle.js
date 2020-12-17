@@ -5,6 +5,13 @@ import Rain from '../renderables/rain.js';
 class Brittle extends Gameplay {
   constructor(scene, { offset, instance }) {
     super({
+      cannons: {
+        instances: [
+          { position: new Vector3(4.25, 26.5, -3.25) },
+          { position: new Vector3(13.75, 23.5, -11.25) },
+        ],
+        model: 'models/cannon.glb',
+      },
       climbables: 'models/brittlePhysics.json',
       effects: [
         {
@@ -40,7 +47,7 @@ class Brittle extends Gameplay {
       rocketRotation: Math.PI * 0.5,
       scene,
       offset,
-      room: `Brittle-${instance}`,
+      room: `Test-${instance}`,
     });
 
     const { ambient, models } = scene;

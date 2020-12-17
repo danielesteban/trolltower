@@ -451,7 +451,7 @@ async function AmmoPhysics() {
 
   }
 
-  function setMeshPosition( mesh, position, index = 0, activate = true ) {
+  function setMeshTransform( mesh, position, rotation, index = 0, activate = true ) {
 
     const body = getBody(mesh, index);
     
@@ -461,8 +461,14 @@ async function AmmoPhysics() {
       body.setLinearVelocity( zero );
 
       auxTransform.setIdentity();
-      auxVector.setValue( position.x, position.y, position.z );
-      auxTransform.setOrigin( auxVector );
+      if (position) {
+        auxVector.setValue( position.x, position.y, position.z );
+        auxTransform.setOrigin( auxVector );
+      }
+      if (rotation) {
+        auxQuaternion.setValue( rotation.x, rotation.y, rotation.z, rotation.w );
+        auxTransform.setRotation( auxQuaternion );
+      }
       body.setWorldTransform( auxTransform );
       body.getMotionState().setWorldTransform( auxTransform );
   
@@ -606,8 +612,8 @@ async function AmmoPhysics() {
 
   function step() {
 
-    const time = performance.now();
-    const delta = ( time - lastTime ) / 1000;
+    const time = performance.now() / 1000;
+    const delta = time - lastTime;
 
     for ( let i = 0, l = kinematic.length; i < l; i ++ ) {
 
@@ -763,6 +769,7 @@ async function AmmoPhysics() {
               mesh: body.mesh,
               index: body.index,
               point: contact,
+              time,
             });
 
           }
@@ -784,7 +791,7 @@ async function AmmoPhysics() {
     removeMesh,
     addConstraint,
     removeConstraint,
-    setMeshPosition,
+    setMeshTransform,
     applyImpulse,
     contactTest,
     reset,

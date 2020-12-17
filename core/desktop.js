@@ -66,7 +66,7 @@ class DesktopControls {
     }
   }
 
-  onAnimationTick({ delta, camera, player }) {
+  onAnimationTick({ animation: { delta }, camera, player }) {
     const {
       aux,
       buttons,

@@ -40,7 +40,7 @@ class Bodies extends InstancedMesh {
           .then((sound) => {
             sound.filter = sound.context.createBiquadFilter();
             sound.setFilter(sound.filter);
-            sound.setRefDistance(2);
+            sound.setRefDistance(3);
             sound.setVolume(1 / 3);
             this.add(sound);
             return sound;

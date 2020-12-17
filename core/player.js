@@ -9,6 +9,7 @@ import {
   Raycaster,
   Vector3,
 } from './three.js';
+import CurveCast from './curvecast.js';
 import DesktopControls from './desktop.js';
 import Head from '../renderables/head.js';
 import Hand from '../renderables/hand.js';
@@ -30,6 +31,27 @@ class Player extends Group {
     this.auxVector = new Vector3();
     this.auxDestination = new Vector3();
     this.attachments = { left: [], right: [] };
+    this.climbing = {
+      bodyScale: 1,
+      enabled: true,
+      grip: [false, false],
+      hand: new Vector3(),
+      isJumping: false,
+      isOnAir: false,
+      lastMovement: new Vector3(),
+      movement: new Vector3(),
+      normal: new Vector3(),
+      velocity: new Vector3(),
+      worldUp: new Vector3(0, 1, 0),
+      reset() {
+        this.bodyScale = 1;
+        this.enabled = true;
+        this.grip[0] = false;
+        this.grip[1] = false;
+        this.isJumping = false;
+        this.isOnAir = false;
+      },
+    };
     this.direction = new Vector3();
     this.head = new AudioListener();
     this.head.rotation.order = 'YXZ';
@@ -122,6 +144,7 @@ class Player extends Group {
       renderer: dom.renderer,
       xr,
     });
+    this.xr = xr;
     {
       const key = 'trolltower::skin';
       let skin = localStorage.getItem(key);
@@ -159,10 +182,19 @@ class Player extends Group {
     attachments.right.length = 0;
   }
 
-  onAnimationTick({ animation: { delta }, camera }) {
+  // This prolly needs some cleanup...
+  // But at least is now all together in a single place
+  onAnimationTick({
+    animation,
+    camera,
+    physics,
+    pointables,
+    translocables,
+  }) {
     const {
       auxMatrixA: rotation,
       auxVector: vector,
+      climbing,
       controllers,
       desktopControls,
       destination,
@@ -170,7 +202,10 @@ class Player extends Group {
       head,
       position,
       speed,
+      xr,
     } = this;
+
+    // Update input state
     camera.matrixWorld.decompose(head.position, head.quaternion, vector);
     head.updateMatrixWorld();
     controllers.forEach(({
@@ -207,7 +242,7 @@ class Player extends Group {
         index: gamepad.buttons[0] && gamepad.buttons[0].pressed,
         middle: gamepad.buttons[1] && gamepad.buttons[1].pressed,
       });
-      hand.animate({ delta });
+      hand.animate(animation);
       worldspace.lastPosition.copy(worldspace.position);
       matrixWorld.decompose(worldspace.position, worldspace.quaternion, vector);
       worldspace.movement.subVectors(worldspace.position, worldspace.lastPosition);
@@ -219,9 +254,11 @@ class Player extends Group {
         );
       raycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotation);
     });
-    desktopControls.onAnimationTick({ camera, delta, player: this });
+    desktopControls.onAnimationTick({ animation, camera, player: this });
+
+    // Animate translocation
     if (destination) {
-      let step = speed * delta;
+      let step = speed * animation.delta;
       const distance = destination.distanceTo(position);
       if (distance <= step) {
         delete this.destination;
@@ -235,6 +272,193 @@ class Player extends Group {
           worldspace.position.add(vector);
         }
       });
+    }
+
+    // Process input
+    controllers.forEach(({
+      hand,
+      buttons: {
+        forwards,
+        forwardsUp,
+        leftwardsDown,
+        rightwardsDown,
+        secondaryDown,
+      },
+      marker,
+      pointer,
+      raycaster,
+    }) => {
+      if (!hand) {
+        return;
+      }
+      if (
+        !climbing.isOnAir
+        && !destination
+        && hand.handedness === 'left'
+        && (leftwardsDown || rightwardsDown)
+      ) {
+        this.rotate(
+          Math.PI * 0.25 * (leftwardsDown ? 1 : -1)
+        );
+      }
+      if (
+        !climbing.isOnAir
+        && !destination
+        && hand.handedness === 'right'
+        && (forwards || forwardsUp)
+      ) {
+        const { hit, points } = CurveCast({
+          intersects: translocables.flat(),
+          raycaster,
+        });
+        if (hit) {
+          if (forwardsUp) {
+            this.translocate(hit.point);
+          } else {
+            marker.update({ animation, hit, points });
+          }
+        }
+      }
+      if (pointables.length) {
+        const hit = raycaster.intersectObjects(pointables.flat())[0] || false;
+        if (hit) {
+          pointer.update({
+            distance: hit.distance,
+            origin: raycaster.ray.origin,
+            target: hit,
+          });
+        }
+      }
+      if (secondaryDown && xr.enabled && xr.isPresenting) {
+        xr.getSession().end();
+      }
+    });
+
+    // Climb
+    if (!climbing.enabled || !physics) {
+      return;
+    }
+    let activeHands = 0;
+    climbing.movement.set(0, 0, 0);
+    controllers.forEach((controller, hand) => {
+      if (
+        controller.hand
+        && controller.buttons.gripDown
+        && !(climbing.isOnAir && climbing.velocity.length() < -5)
+      ) {
+        climbing.hand
+          .copy(controller.physics.position)
+          .applyQuaternion(controller.worldspace.quaternion)
+          .add(controller.worldspace.position);
+        const contacts = physics.contactTest({
+          climbable: true,
+          shape: 'sphere',
+          radius: 0.1,
+          position: climbing.hand,
+        });
+        if (contacts.length) {
+          const { mesh, index } = contacts[0].body;
+          climbing.grip[hand] = { mesh, index, time: animation.time };
+          controller.pulse(0.3, 30);
+        }
+      }
+      if (climbing.grip[hand]) {
+        if (!controller.hand || controller.buttons.gripUp || destination) {
+          climbing.grip[hand] = false;
+          if (!climbing.activeHands) {
+            climbing.isOnAir = true;
+            climbing.velocity.copy(climbing.lastMovement);
+          }
+        } else {
+          climbing.movement.add(controller.worldspace.movement);
+          activeHands += 1;
+          climbing.isOnAir = false;
+        }
+      }
+    });
+
+    // Jump
+    const jumpGrip = (
+      controllers[0].hand && controllers[0].buttons.grip
+      && controllers[1].hand && controllers[1].buttons.grip
+    );
+    if (
+      !activeHands
+      && jumpGrip
+      && !destination
+      && !climbing.isOnAir
+      && !climbing.isJumping
+    ) {
+      climbing.isJumping = true;
+    }
+    if (climbing.isJumping) {
+      if (jumpGrip) {
+        activeHands = 2;
+        climbing.movement.addVectors(
+          controllers[0].worldspace.movement,
+          controllers[1].worldspace.movement
+        );
+      } else {
+        climbing.isJumping = false;
+        climbing.isOnAir = true;
+        climbing.velocity.copy(climbing.lastMovement);
+      }
+    }
+    if (activeHands) {
+      this.move(
+        climbing.movement.divideScalar(activeHands).negate()
+      );
+      climbing.bodyScale = 0;
+      climbing.lastMovement.copy(climbing.movement).divideScalar(animation.delta);
+    } else if (climbing.isOnAir && !destination) {
+      climbing.velocity.y -= 9.8 * animation.delta;
+      this.move(
+        climbing.movement.copy(climbing.velocity).multiplyScalar(animation.delta)
+      );
+    }
+
+    // Fall
+    if (!destination) {
+      if (!activeHands && climbing.bodyScale < 1) {
+        climbing.bodyScale = (
+          Math.min(Math.max(climbing.bodyScale + animation.delta * 2, 0.45), 1)
+        );
+      }
+      const radius = 0.2;
+      const height = (
+        Math.max(head.position.y - position.y - radius, 0) * climbing.bodyScale ** 2
+        + radius * 2
+      );
+      const contacts = physics.contactTest({
+        static: true,
+        shape: 'capsule',
+        radius,
+        height: height - (radius * 2),
+        position: {
+          x: head.position.x,
+          y: (head.position.y + radius) - height * 0.5,
+          z: head.position.z,
+        },
+      });
+      if (contacts.length) {
+        climbing.movement.set(0, 0, 0);
+        contacts.forEach(({
+          distance,
+          normal,
+        }) => {
+          climbing.normal.copy(normal).normalize();
+          climbing.movement.addScaledVector(climbing.normal, -distance);
+          if (
+            climbing.bodyScale === 1
+            && climbing.normal.dot(climbing.worldUp) > 0
+          ) {
+            climbing.isOnAir = false;
+          }
+        });
+        if (climbing.movement.length()) {
+          this.move(climbing.movement);
+        }
+      }
     }
   }
 

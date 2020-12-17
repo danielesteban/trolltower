@@ -106,7 +106,6 @@ class Renderer {
         ) : (
           camera
         ),
-        xr: renderer.xr,
       });
       renderer.render(scene, camera);
     }
