@@ -22,6 +22,10 @@ import Spheres from '../renderables/spheres.js';
 
 class Gameplay extends Group {
   constructor({
+    room,
+    scene,
+    offset,
+    spectator,
     cannons = false,
     climbables = false,
     defaultAmmo = 10,
@@ -35,9 +39,6 @@ class Gameplay extends Group {
     rocketOrigin,
     rocketRotation = Math.PI,
     terrainPhysics = false,
-    scene,
-    offset,
-    room,
   }) {
     super();
 
@@ -49,6 +50,7 @@ class Gameplay extends Group {
     } = scene;
 
     this.player = player;
+    this.spectator = spectator;
 
     this.birds = new Birds({ anchor: player });
     this.add(this.birds);
@@ -317,17 +319,23 @@ class Gameplay extends Group {
               }
             }
           },
+          onSpectator: (peer) => {
+            this.physics.removeMesh(peer.head);
+          },
           player,
+          spectator,
           room: `wss://rooms.trolltower.app/${room}`,
         });
         this.add(this.peers);
 
-        player.head.physics.onContact = this.projectiles.destroyOnContact;
-        this.physics.addMesh(player.head.physics, 0, { isKinematic: true, isTrigger: true });
+        if (!spectator) {
+          player.head.physics.onContact = this.projectiles.destroyOnContact;
+          this.physics.addMesh(player.head.physics, 0, { isKinematic: true, isTrigger: true });
 
-        player.controllers.forEach((controller) => {
-          this.physics.addMesh(controller.physics, 0, { isKinematic: true });
-        });
+          player.controllers.forEach((controller) => {
+            this.physics.addMesh(controller.physics, 0, { isKinematic: true });
+          });
+        }
       });
 
     if (cannons) {
@@ -504,6 +512,7 @@ class Gameplay extends Group {
       pickups,
       player,
       rocket,
+      spectator,
     } = this;
     birds.animate(animation);
     clouds.animate(animation);
@@ -568,7 +577,7 @@ class Gameplay extends Group {
         }
       }
     });
-    if (isOnElevator) {
+    if (isOnElevator || spectator) {
       return;
     }
     [

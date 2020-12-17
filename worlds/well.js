@@ -3,8 +3,12 @@ import Gameplay from '../core/gameplay.js';
 import Lava from '../renderables/lava.js';
 
 class Well extends Gameplay {
-  constructor(scene, { offset, instance }) {
+  constructor(scene, { instance, offset, spectator }) {
     super({
+      room: `Well-${instance}`,
+      scene,
+      offset,
+      spectator,
       climbables: 'models/wellPhysics.json',
       effects: [
         {
@@ -47,9 +51,6 @@ class Well extends Gameplay {
         model: 'models/barrel.glb',
       },
       rocketOrigin: new Vector3(0, 7.25, 0),
-      scene,
-      offset,
-      room: `Well-${instance}`,
     });
 
     const { ambient, models, sfx } = scene;

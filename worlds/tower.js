@@ -10,7 +10,7 @@ import Ocean from '../renderables/ocean.js';
 import Rain from '../renderables/rain.js';
 
 class Tower extends Gameplay {
-  constructor(scene, { offset, instance }) {
+  constructor(scene, { instance, offset, spectator }) {
     const elevators = [];
     const boats = [
       new Vector3(0, 3.5, -29.5),
@@ -30,6 +30,10 @@ class Tower extends Gameplay {
     });
 
     super({
+      room: `Tower-${instance}`,
+      scene,
+      offset,
+      spectator,
       climbables: 'models/towerPhysics.json',
       elevators,
       groundColor: 0x05bb7c,
@@ -73,9 +77,6 @@ class Tower extends Gameplay {
       },
       rocketOrigin: new Vector3(0, 31.25, 0),
       rocketRotation: Math.PI * -0.5,
-      scene,
-      offset,
-      room: `Tower-${instance}`,
     });
 
     const { ambient, models, translocables } = scene;
