@@ -112,7 +112,11 @@ class Menu extends Group {
             elevator.display.set(`${worlds[elevator.world].name} - S${instance < 10 ? '0' : ''}${instance} - ${peers}/${maxPeers}`);
             elevator.isOpen = peers < maxPeers;
             elevator.onClose = elevator.isOpen ? () => (
-              scene.load(elevator.world, { offset: elevator.getOffset(player), instance })
+              scene.load(elevator.world, {
+                instance,
+                offset: elevator.getOffset(player),
+                spectator: !player.xr.enabled || !player.xr.isPresenting,
+              })
             ) : undefined;
           });
         })

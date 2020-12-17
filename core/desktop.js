@@ -7,16 +7,9 @@ import {
 
 // Player desktop controls
 
-// This were an afterthought and are mostly used just for debugging.
-// If you really want a good desktop experience with some sort of
-// nav meshing or collisions, you will prolly need to reimplement this.
-// And maybe use the opportunity to merge them into the player class with
-// a standarized input model for multiple arbitrary control devices.
-
 class DesktopControls {
-  constructor({ enabled, renderer, xr }) {
+  constructor({ renderer, xr }) {
     this.isDesktop = true;
-    this.isEnabled = enabled;
     this.aux = {
       center: new Vector2(),
       direction: new Vector3(),
@@ -72,13 +65,12 @@ class DesktopControls {
       buttons,
       buttonState,
       keyboard,
-      isEnabled,
       isLocked,
       pointer,
       raycaster,
       xr,
     } = this;
-    if (!isEnabled || !isLocked) {
+    if (!isLocked) {
       return;
     }
     if (xr.isPresenting) {
@@ -177,8 +169,8 @@ class DesktopControls {
   }
 
   onMouseDown({ button }) {
-    const { buttonState, isEnabled, isLocked } = this;
-    if (!isEnabled || !isLocked) {
+    const { buttonState, isLocked } = this;
+    if (!isLocked) {
       return;
     }
     switch (button) {
@@ -194,16 +186,16 @@ class DesktopControls {
   }
 
   onMouseMove({ movementX, movementY }) {
-    const { isEnabled, isLocked, pointer } = this;
-    if (!isEnabled || !isLocked) {
+    const { isLocked, pointer } = this;
+    if (!isLocked) {
       return;
     }
     pointer.set(movementX, movementY);
   }
 
   onMouseUp({ button }) {
-    const { buttonState, isEnabled, isLocked } = this;
-    if (!isEnabled || !isLocked) {
+    const { buttonState, isLocked } = this;
+    if (!isLocked) {
       return;
     }
     switch (button) {
@@ -226,8 +218,8 @@ class DesktopControls {
   }
 
   requestPointerLock() {
-    const { isEnabled, isLocked, xr } = this;
-    if (!isEnabled || isLocked || xr.isPresenting) {
+    const { isLocked, xr } = this;
+    if (isLocked || xr.isPresenting) {
       return;
     }
     document.body.requestPointerLock();

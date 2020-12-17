@@ -136,15 +136,7 @@ class Player extends Group {
       });
       return controller;
     });
-    this.desktopControls = new DesktopControls({
-      enabled: (
-        document.location.origin === 'https://localhost:5000'
-        || window.localStorage.getItem('debug')
-      ),
-      renderer: dom.renderer,
-      xr,
-    });
-    this.xr = xr;
+    this.desktopControls = new DesktopControls({ renderer: dom.renderer, xr });
     {
       const key = 'trolltower::skin';
       let skin = localStorage.getItem(key);
@@ -154,6 +146,7 @@ class Player extends Group {
       }
       this.skin = skin;
     }
+    this.xr = xr;
   }
 
   attach(attachment, handedness) {

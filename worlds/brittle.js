@@ -3,8 +3,12 @@ import Gameplay from '../core/gameplay.js';
 import Rain from '../renderables/rain.js';
 
 class Brittle extends Gameplay {
-  constructor(scene, { offset, instance }) {
+  constructor(scene, { instance, offset, spectator }) {
     super({
+      room: `Brittle-${instance}`,
+      scene,
+      offset,
+      spectator,
       cannons: {
         instances: [
           { position: new Vector3(3.75, 26.5, -3.75), rotation: 0 },
@@ -47,9 +51,6 @@ class Brittle extends Gameplay {
       },
       rocketOrigin: new Vector3(-17.5, 21.25, -25.5),
       rocketRotation: Math.PI * 0.5,
-      scene,
-      offset,
-      room: `Brittle-${instance}`,
     });
 
     const { ambient, models } = scene;

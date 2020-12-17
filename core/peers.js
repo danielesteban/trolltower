@@ -9,15 +9,19 @@ class Peers extends Group {
     onLeave,
     onJoin,
     onPeerMessage,
+    onSpectator,
     player,
+    spectator,
     room,
   }) {
     super();
     this.onLeave = onLeave;
     this.onJoin = onJoin;
     this.onPeerMessage = onPeerMessage;
+    this.onSpectator = onSpectator;
     this.peers = [];
     this.player = player;
+    this.spectator = spectator;
     this.room = room;
     this.connectToServer();
     if (navigator.mediaDevices) {
@@ -28,7 +32,7 @@ class Peers extends Group {
   }
 
   animate({ delta }) {
-    const { peers, player } = this;
+    const { peers, player, spectator } = this;
 
     const hands = player.controllers
       .filter(({ hand }) => (!!hand))
@@ -74,6 +78,15 @@ class Peers extends Group {
             // console.log(e);
           }
         }
+        if (spectator && !connection.hasSentSpectator) {
+          connection.hasSentSpectator = true;
+          const payload = new Uint8Array([0x02]);
+          try {
+            connection.send(payload);
+          } catch (e) {
+            // console.log(e);
+          }
+        }
       }
       controllers.forEach((controller) => {
         if (controller.visible) {
@@ -88,9 +101,10 @@ class Peers extends Group {
     const isRaw = message instanceof Uint8Array;
     const encoded = !isRaw ? (new TextEncoder()).encode(JSON.stringify(message)) : message;
     const payload = new Uint8Array(1 + encoded.byteLength);
-    payload[0] = !isRaw ? 0x02 : 0x03;
+    payload[0] = isRaw ? 0x03 : 0x04;
     payload.set(new Uint8Array(encoded.buffer), 1);
-    peers.forEach(({ connection }) => {
+    peers.forEach((peer) => {
+      const { connection } = peer;
       if (
         connection
         && connection._channel
@@ -224,9 +238,19 @@ class Peers extends Group {
   }
 
   onPeerData(peer, data) {
-    const { onPeerMessage } = this;
+    const { onPeerMessage, onSpectator } = this;
     switch (data[0]) {
       case 0x02:
+        if (onSpectator) {
+          onSpectator(peer);
+        }
+        break;
+      case 0x03:
+        if (onPeerMessage) {
+          onPeerMessage({ peer, message: new Uint8Array(data.slice(1)) });
+        }
+        break;
+      case 0x04:
         if (onPeerMessage) {
           let message = data.slice(1);
           try {
@@ -235,11 +259,6 @@ class Peers extends Group {
             break;
           }
           onPeerMessage({ peer, message });
-        }
-        break;
-      case 0x03:
-        if (onPeerMessage) {
-          onPeerMessage({ peer, message: new Uint8Array(data.slice(1)) });
         }
         break;
       default:

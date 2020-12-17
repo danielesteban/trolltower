@@ -3,8 +3,12 @@ import Gameplay from '../core/gameplay.js';
 import Lava from '../renderables/lava.js';
 
 class Pit extends Gameplay {
-  constructor(scene, { offset, instance }) {
+  constructor(scene, { instance, offset, spectator }) {
     super({
+      room: `Pit-${instance}`,
+      scene,
+      offset,
+      spectator,
       effects: [
         {
           id: 'burning',
@@ -44,9 +48,6 @@ class Pit extends Gameplay {
       rocketOrigin: new Vector3(0, 2.75, 0),
       rocketRotation: Math.PI * 0.5,
       terrainPhysics: 'models/pitPhysics.json',
-      scene,
-      offset,
-      room: `Pit-${instance}`,
     });
 
     const { models, sfx } = scene;

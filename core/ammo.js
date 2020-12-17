@@ -306,10 +306,14 @@ async function AmmoPhysics() {
     if ( mesh.isInstancedMesh ) {
 
       // Not yet implemented
+      return;
 
-    } else if ( mesh.isGroup || mesh.isMesh ) {
+    }
+    
+    const body = getBody(mesh, index);
+    
+    if ( body ) {
 
-      const body = meshMap.get( mesh );
       const { shape } = body;
       const motionState = body.getMotionState();
       world.removeRigidBody(body);
