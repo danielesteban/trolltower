@@ -1,0 +1,20 @@
+{
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  "search.exclude": {
+    ".github/": true,
+    ".vscode/": true,
+    "localhost-cert.pem": true,
+    "localhost-key.pem": true,
+    "node_modules/": true,
+    "server/.data/": true,
+  },
+  "files.exclude": {
+    ".github/": true,
+    ".vscode/": true,
+    "localhost-cert.pem": true,
+    "localhost-key.pem": true,
+    "node_modules/": true,
+    "server/.data/": true,
+  }
+}
