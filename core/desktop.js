@@ -73,7 +73,7 @@ class DesktopControls {
     if (!isLocked) {
       return;
     }
-    if (xr.isPresenting) {
+    if (xr.enabled && xr.isPresenting) {
       document.exitPointerLock();
       return;
     }
@@ -219,7 +219,7 @@ class DesktopControls {
 
   requestPointerLock() {
     const { isLocked, xr } = this;
-    if (isLocked || xr.isPresenting) {
+    if (isLocked || (xr.enabled && xr.isPresenting)) {
       return;
     }
     document.body.requestPointerLock();

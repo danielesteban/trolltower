@@ -145,7 +145,7 @@ class Cannon extends Group {
       friction: true,
       mesh: this.shaft,
       pivotInA: new Vector3(0, shaftPivot.y, 0),
-      pivotInB: new Vector3(shaftPivot.x, 0, -shaftPivot.z),
+      pivotInB: new Vector3(-shaftPivot.x, 0, -shaftPivot.z),
       axisInA: new Vector3(1, 0, 0),
       axisInB: new Vector3(1, 0, 0),
     };
