@@ -14,6 +14,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           cname: trolltower.app
-          exclude_assets: '.github,server'
+          exclude_assets: '.github,.gitignore,.nojekyll,package.json,server'
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ''
