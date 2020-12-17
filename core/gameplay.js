@@ -29,14 +29,15 @@ class Gameplay extends Group {
     elevators,
     groundColor = 0,
     lightmap = false,
+    physicsScale = 0.5,
     platforms = false,
     pickups = false,
     rocketOrigin,
     rocketRotation = Math.PI,
+    terrainPhysics = false,
     scene,
     offset,
     room,
-    terrainPhysics = false,
   }) {
     super();
 
@@ -234,8 +235,8 @@ class Gameplay extends Group {
             .then((lightmap) => {
               this.projectiles.material = new Lightmap({
                 channels: lightmap.channels,
-                origin: lightmap.origin.clone().multiplyScalar(0.5),
-                size: lightmap.size.clone().multiplyScalar(0.5),
+                origin: lightmap.origin.clone().multiplyScalar(physicsScale),
+                size: lightmap.size.clone().multiplyScalar(physicsScale),
                 textures: [lightmap.texture],
               });
             });
@@ -346,8 +347,8 @@ class Gameplay extends Group {
             lightmap = new Lightmap({
               blending: 0.9,
               channels: lightmap.channels,
-              origin: lightmap.origin.clone().multiplyScalar(0.5),
-              size: lightmap.size.clone().multiplyScalar(0.5),
+              origin: lightmap.origin.clone().multiplyScalar(physicsScale),
+              size: lightmap.size.clone().multiplyScalar(physicsScale),
               textures: [lightmap.texture],
             });
             models.base = models.base.clone();
@@ -355,10 +356,11 @@ class Gameplay extends Group {
             Lightmap.swapMaterials(models.base, lightmap, materials);
             Lightmap.swapMaterials(models.shaft, lightmap, materials);
           }
-          this.cannons = cannons.instances.map(({ position }, instance) => {
+          this.cannons = cannons.instances.map(({ position, rotation }, instance) => {
             const cannon = new Cannon({
               models,
               position,
+              rotation,
             });
             cannon.lastShot = 0;
             cannon.shaft.onContact = ({ mesh, time }) => {
@@ -424,8 +426,8 @@ class Gameplay extends Group {
             Lightmap.swapMaterials(model, new Lightmap({
               blending: 0.9,
               channels: lightmap.channels,
-              origin: lightmap.origin.clone().multiplyScalar(0.5),
-              size: lightmap.size.clone().multiplyScalar(0.5),
+              origin: lightmap.origin.clone().multiplyScalar(physicsScale),
+              size: lightmap.size.clone().multiplyScalar(physicsScale),
               textures: [lightmap.texture],
             }));
           }
@@ -449,9 +451,9 @@ class Gameplay extends Group {
 
     Promise.all([
       scene.getPhysics(),
-      climbables ? models.physics(climbables, 0.5) : Promise.resolve(),
+      climbables ? models.physics(climbables, physicsScale) : Promise.resolve(),
       models.physics('models/rocketPhysics.json', 0.25),
-      terrainPhysics ? models.physics(terrainPhysics, 0.5) : Promise.resolve(),
+      terrainPhysics ? models.physics(terrainPhysics, physicsScale) : Promise.resolve(),
     ])
       .then(([/* physics */, climbables, rocketPhysics, terrainPhysics]) => {
         translocables.push(ground);

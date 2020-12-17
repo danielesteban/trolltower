@@ -9,6 +9,7 @@ class Cannon extends Group {
   constructor({
     models,
     position,
+    rotation,
   }) {
     super();
     const baseScale = 0.125;
@@ -78,7 +79,7 @@ class Cannon extends Group {
     this.add(this.base);
 
     const shaftScale = 0.085;
-    const shaftPivot = new Vector3(0, 1.075, 0.1);
+    const shaftPivot = new Vector3(0, 1.075, -0.1);
     this.shaft = new Group();
     this.shaft.position.copy(position).add(shaftPivot);
     this.shaft.physics = [
@@ -105,9 +106,9 @@ class Cannon extends Group {
       },
       {
         shape: 'box',
-        position: new Vector3(0, 0, 7.5),
+        position: new Vector3(0, 0.5, 7.5),
         width: 2,
-        height: 2,
+        height: 1,
         depth: 1,
       },
     ].map((box) => ({
@@ -144,7 +145,7 @@ class Cannon extends Group {
       friction: true,
       mesh: this.shaft,
       pivotInA: new Vector3(0, shaftPivot.y, 0),
-      pivotInB: new Vector3(shaftPivot.x, 0, shaftPivot.z),
+      pivotInB: new Vector3(shaftPivot.x, 0, -shaftPivot.z),
       axisInA: new Vector3(1, 0, 0),
       axisInB: new Vector3(1, 0, 0),
     };
@@ -155,6 +156,9 @@ class Cannon extends Group {
       position: new Vector3(),
       direction: new Vector3(),
     };
+
+    this.base.rotation.y = rotation;
+    this.shaft.quaternion.multiply(this.base.quaternion);
   }
 
   getShot() {

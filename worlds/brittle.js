@@ -7,8 +7,10 @@ class Brittle extends Gameplay {
     super({
       cannons: {
         instances: [
-          { position: new Vector3(4.25, 26.5, -3.25) },
-          { position: new Vector3(13.75, 23.5, -11.25) },
+          { position: new Vector3(3.75, 26.5, -3.75), rotation: 0 },
+          { position: new Vector3(10.75, 22, -16.75), rotation: Math.PI * 0.5 },
+          { position: new Vector3(2.25, 18.5, -27.25), rotation: Math.PI },
+          { position: new Vector3(-11.25, 21.5, -26.25), rotation: Math.PI * -0.5 },
         ],
         model: 'models/cannon.glb',
       },
@@ -37,8 +39,8 @@ class Brittle extends Gameplay {
       },
       pickups: {
         instances: [
-          new Vector3(11, 22.5, -16.5),
-          new Vector3(3.5, 17, -34.5),
+          new Vector3(14.25, 24, -12.25),
+          new Vector3(3.75, 17, -34.75),
           new Vector3(-11.25, 22.5, -21.75),
         ],
         model: 'models/barrel.glb',
@@ -52,10 +54,10 @@ class Brittle extends Gameplay {
 
     const { ambient, models } = scene;
 
-    ambient.set([
-      'sounds/rain.ogg',
-      'sounds/forest.ogg',
-    ]);
+    // ambient.set([
+    //   'sounds/rain.ogg',
+    //   'sounds/forest.ogg',
+    // ]);
     scene.background = new Color(0x110A1A);
     scene.fog = new FogExp2(scene.background.getHex(), 0.03);
 
