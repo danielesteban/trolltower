@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TrollTower - Peers Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  </head>
+  <body>
+    <div id="wrapper">
+      <h5>Worlds</h5>
+      <div id="peers"></div>
+      <h5>Last 48H</h5>
+      <canvas id="graphA" class="graph"></canvas>
+      <h5>Last Week</h5>
+      <canvas id="graphB" class="graph"></canvas>
+    </div>
+    <script>
+      const dom = {
+        graphA: document.getElementById('graphA'),
+        graphB: document.getElementById('graphB'),
+        peers: document.getElementById('peers'),
+      };
+      const rooms = ['Menu', 'Tower', 'Well', 'Pit', 'Brittle'].map((room) => {
+        const div = document.createElement('div');
+        div.className = 'room';
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        div.appendChild(bar);
+        const id = document.createElement('div');
+        id.innerText = room;
+        div.appendChild(id);
+        const count = document.createElement('div');
+        count.className = 'count';
+        div.appendChild(count);
+        dom.peers.appendChild(div);
+        return { id: room, bar, count };
+      });
+      const sound = new Audio();
+      sound.src = 'sounds/ding.ogg';
+      sound.volume = 0.5;
+      let count = Infinity;
+      const updatePeers = () => {
+        fetch('https://rooms.trolltower.app/peers')
+          .then((res) => res.json())
+          .then((peers) => {
+            peers = Object.keys(peers).reduce((merged, key) => {
+              const [id] = key.split('-');
+              merged[id] = (merged[id] || 0) + peers[key];
+              return merged;
+            }, {});
+            const previous = count;
+            count = rooms.reduce((total, room) => {
+              room.count.innerText = peers[room.id] || 0;
+              return total + (peers[room.id] || 0);
+            }, 0);
+            if (count > previous) {
+              sound.play();
+              updateGraphs();
+            }
+          })
+      };
+      dom.graphA.width = dom.graphB.width = 400;
+      dom.graphA.height = dom.graphB.height = 64;
+      const updateGraphs = () => {
+        fetch('https://rooms.trolltower.app/stats')
+          .then((res) => res.json())
+          .then((stats) => {
+            {
+              const max = Object.keys(stats.room).reduce((max, id) => Math.max(max, stats.room[id]), 0);
+              rooms.forEach(({ id, bar }) => {
+                bar.style.width = `${((stats.room[id] || 0) * 90) / max}%`;
+              });
+            }
+            [
+              { graph: dom.graphA, count: 24 * 2 },
+              { graph: dom.graphB, count: 24 * 7 },
+            ].forEach(({ graph, count }) => {
+              const { width, height } = graph;
+              const ctx = graph.getContext('2d');
+              ctx.clearRect(0, 0, width, height);
+              const max = Object.keys(stats.hour).reduce((max, date) => Math.max(max, stats.hour[date]), 0);
+              const size = width / count;
+              const ratio = (height - 10) / max;
+              const now = new Date();
+              let time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+              for (let i = count - 1; i >= 0; i -= 1) {
+                const year = time.getUTCFullYear();
+                const month = time.getUTCMonth();
+                const date = time.getUTCDate();
+                const hours = time.getUTCHours();
+                const localHours = time.getHours();
+                const key = `${year}${month < 9 ? '0' : ''}${month + 1}${date < 10 ? '0' : ''}${date}${hours < 10 ? '0' : ''}${hours}`;
+                time = new Date(Date.UTC(year, month, date, hours - 1));
+                if (localHours === 0 || localHours === 12) {
+                  ctx.fillStyle = localHours === 0 ? '#444' : '#333';
+                  ctx.fillRect(
+                    size * i, 0,
+                    size, height
+                  );
+                }
+                if (stats.hour[key]) {
+                  const h = stats.hour[key] * ratio;
+                  ctx.fillStyle = '#393';
+                  ctx.fillRect(
+                    size * i, height - h,
+                    size, h
+                  );
+                }
+              }
+            });
+          });
+      };
+      setInterval(updatePeers, 10000);
+      updatePeers();
+      updateGraphs();
+    </script>
+    <style>
+      body {
+        background: linear-gradient(#444, #222);
+        margin: 0;
+        font-family: monospace;
+        overflow-y: scroll;
+        color: #fff;
+      }
+      #wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-width: 400px;
+        margin: 0 auto;
+        height: 100vh;
+      }
+      h5 {
+        display: block;
+        text-transform: uppercase;
+      }
+      .graph {
+        border-top: 1px dashed #010;
+        border-bottom: 1px dashed #010;
+        vertical-align: middle;
+        margin-bottom: 1rem;
+      }
+      #peers {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+      .room {
+        position: relative;
+        display: flex;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px dashed #010;
+      }
+      .room:first-child {
+        border-top: 1px dashed #010;
+      }
+      .bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: #060;
+        z-index: -1;
+      }
+      .count {
+        margin-left: auto;
+      }
+    </style>
+  </body>
+</html>

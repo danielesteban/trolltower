@@ -1,0 +1,27 @@
+{
+  "name": "trolltower",
+  "description": "A webxr multiplayer game",
+  "author": "Daniel Esteban Nombela",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "cert": "openssl req -x509 -newkey rsa:2048 -nodes -sha256 -subj /CN=localhost -keyout localhost-key.pem -out localhost-cert.pem",
+    "postinstall": "npm run cert",
+    "start": "sirv --dev --host 0.0.0.0 --cert localhost-cert.pem --key localhost-key.pem --http2 .",
+    "server": "node server/main.js"
+  },
+  "devDependencies": {
+    "sirv-cli": "^1.0.10"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-ws": "^4.0.0",
+    "helmet": "^4.2.0",
+    "nocache": "^2.1.0",
+    "sequelize": "^6.3.5",
+    "sqlite3": "^5.0.0",
+    "uuid": "^8.3.2"
+  }
+}
