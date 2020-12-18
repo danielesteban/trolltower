@@ -172,7 +172,6 @@ class Menu extends Group {
         boxes.forEach((box) => {
           translocables.push(box);
           this.physics.addMesh(box, 0, { isClimbable: true });
-          this.add(box);
         });
         doors.forEach((door) => {
           this.physics.addMesh(door, 5);

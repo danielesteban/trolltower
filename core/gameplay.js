@@ -499,11 +499,11 @@ class Gameplay extends Group {
           climbables.forEach((box) => {
             translocables.push(box);
             this.physics.addMesh(box, 0, { isClimbable: true });
-            this.add(box);
           });
         }
         rocket.physics = [];
         rocketPhysics.forEach((box) => {
+          box.matrixAutoUpdate = true;
           translocables.push(box);
           rocket.add(box);
           rocket.physics.push({
@@ -519,7 +519,6 @@ class Gameplay extends Group {
           terrainPhysics.forEach((box) => {
             translocables.push(box);
             this.physics.addMesh(box);
-            this.add(box);
           });
         }
       });
