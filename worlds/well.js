@@ -49,7 +49,7 @@ class Well extends Gameplay {
       pickups: {
         instances: [...Array(7)].map((v, i) => {
           const angle = (i % 4) * Math.PI * 0.5;
-          const dist = i < 3 ? 14.5 : 2;
+          const dist = i < 3 ? 15 : 2;
           return new Vector3(
             Math.cos(angle) * dist,
             i < 3 ? 26.5 : 14,
