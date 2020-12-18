@@ -76,7 +76,7 @@ class Rocket extends Group {
     position.copy(initialPosition);
     this.updateMatrixWorld();
     onReset();
-  };
+  }
 }
 
 export default Rocket;

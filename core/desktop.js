@@ -96,13 +96,15 @@ class DesktopControls {
       } = this.aux;
       camera.getWorldDirection(forward);
       right.crossVectors(forward, worldUp);
-      direction
-        .set(0, 0, 0)
-        .addScaledVector(right, keyboard.x)
-        .addScaledVector(worldUp, keyboard.y)
-        .addScaledVector(forward, keyboard.z)
-        .normalize();
-      player.move(direction.multiplyScalar(delta * 6));
+      player.move(
+        direction
+          .set(0, 0, 0)
+          .addScaledVector(right, keyboard.x)
+          .addScaledVector(worldUp, keyboard.y)
+          .addScaledVector(forward, keyboard.z)
+          .normalize()
+          .multiplyScalar(delta * 6)
+      );
     }
     ['primary', 'secondary'].forEach((button) => {
       const state = buttonState[button];
