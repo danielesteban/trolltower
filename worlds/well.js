@@ -8,6 +8,21 @@ class Well extends Gameplay {
       scene,
       offset,
       spectator,
+      cannons: {
+        instances: [...Array(3)].map((v, i) => {
+          const angle = i * Math.PI * 0.5;
+          const dist = 13.25;
+          return {
+            position: new Vector3(
+              Math.cos(angle) * dist,
+              20,
+              Math.sin(angle) * dist
+            ),
+            rotation: Math.PI * 0.5 - angle,
+          };
+        }),
+        model: 'models/cannon.glb',
+      },
       climbables: 'models/wellPhysics.json',
       elevators: [
         { position: new Vector3(19.25, 3, 0), rotation: Math.PI * -0.5 },
@@ -32,12 +47,12 @@ class Well extends Gameplay {
         model: 'models/platform.glb',
       },
       pickups: {
-        instances: [...Array(6)].map((v, i) => {
-          const angle = (i % 3) * Math.PI * 0.5;
-          const dist = 15;
+        instances: [...Array(7)].map((v, i) => {
+          const angle = (i % 4) * Math.PI * 0.5;
+          const dist = i < 3 ? 14.5 : 2;
           return new Vector3(
             Math.cos(angle) * dist,
-            26.5,
+            i < 3 ? 26.5 : 14,
             Math.sin(angle) * dist
           );
         }),
