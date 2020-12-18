@@ -45,7 +45,7 @@ class Pointer extends Line {
     parent.worldToLocal(position.copy(origin));
     scale.z = distance;
     this.updateMatrix();
-    this.updateWorldMatrix();
+    this.updateMatrixWorld();
     this.target = target;
     this.visible = true;
   }

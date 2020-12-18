@@ -75,7 +75,6 @@ class Marker extends Group {
     if (hit) {
       disc.rotation.y += delta;
       disc.position.copy(hit.point);
-      disc.updateWorldMatrix();
       disc.visible = true;
     } else {
       disc.visible = false;
