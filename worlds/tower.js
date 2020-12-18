@@ -154,9 +154,10 @@ class Tower extends Gameplay {
           boatPhysics.forEach((box) => {
             box = box.clone();
             box.position.add(boatModelOffset);
-            box.updateMatrix();
             translocables.push(box);
             boat.add(box);
+            box.updateMatrix();
+            box.updateMatrixWorld();
             boat.physics.push({
               shape: 'box',
               position: box.position,
