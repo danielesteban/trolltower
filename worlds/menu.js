@@ -156,6 +156,10 @@ class Menu extends Group {
     models.load('models/menu.glb')
       .then((model) => {
         model.scale.setScalar(0.5);
+        model.traverse((child) => {
+          child.matrixAutoUpdate = false;
+          child.updateMatrix();
+        });
         this.add(model);
       });
 

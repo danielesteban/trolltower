@@ -112,6 +112,8 @@ class Tower extends Gameplay {
                 .floor()
             );
             model.traverse((child) => {
+              child.matrixAutoUpdate = false;
+              child.updateMatrix();
               if (child.isMesh) {
                 rain.addToHeightmap(child, transform);
               }
@@ -123,6 +125,8 @@ class Tower extends Gameplay {
         .then((model) => {
           model.scale.setScalar(0.5);
           model.traverse((child) => {
+            child.matrixAutoUpdate = false;
+            child.updateMatrix();
             if (child.isMesh) {
               rain.addToHeightmap(child);
             }
@@ -150,6 +154,7 @@ class Tower extends Gameplay {
           boatPhysics.forEach((box) => {
             box = box.clone();
             box.position.add(boatModelOffset);
+            box.updateMatrix();
             translocables.push(box);
             boat.add(box);
             boat.physics.push({
