@@ -58,7 +58,7 @@ class Well extends Gameplay {
         }),
         model: 'models/barrel.glb',
       },
-      rocketOrigin: new Vector3(0, 25.75, -19),
+      rocketOrigin: new Vector3(0, 25.75, -21),
     });
 
     const { ambient, models } = scene;
