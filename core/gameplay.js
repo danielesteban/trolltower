@@ -15,6 +15,7 @@ import Effect from '../renderables/effect.js';
 import Elevator from '../renderables/elevator.js';
 import Explosion from '../renderables/explosion.js';
 import Ground from '../renderables/ground.js';
+import Lava from '../renderables/lava.js';
 import Platforms from '../renderables/platforms.js';
 import Pickups from '../renderables/pickups.js';
 import Rocket from '../renderables/rocket.js';
@@ -29,9 +30,10 @@ class Gameplay extends Group {
     cannons = false,
     climbables = false,
     defaultAmmo = 10,
-    effects = false,
+    effects = [],
     elevators,
     groundColor = 0,
+    lava = false,
     lightmap = false,
     physicsScale = 0.5,
     platforms = false,
@@ -80,27 +82,32 @@ class Gameplay extends Group {
       player.attach(counter, hand);
     });
 
-    if (effects) {
-      this.effects = effects.reduce((effects, {
-        id,
+    this.effects = [
+      {
+        id: 'burning',
+        color: 0xFF0000,
+        onEnd: () => this.respawn(),
+      },
+      ...effects,
+    ].reduce((effects, {
+      id,
+      color,
+      onEnd,
+      onTrigger,
+      speed,
+    }) => {
+      const effect = new Effect({
+        anchor: player.head,
         color,
         onEnd,
         onTrigger,
         speed,
-      }) => {
-        const effect = new Effect({
-          anchor: player.head,
-          color,
-          onEnd,
-          onTrigger,
-          speed,
-        });
-        this.add(effect);
-        effects[id] = effect;
-        effects.list.push(effect);
-        return effects;
-      }, { list: [] });
-    }
+      });
+      this.add(effect);
+      effects[id] = effect;
+      effects.list.push(effect);
+      return effects;
+    }, { list: [] });
 
     this.explosions = [...Array(50)].map(() => {
       const explosion = new Explosion({ sfx });
@@ -110,6 +117,15 @@ class Gameplay extends Group {
 
     const ground = new Ground(256, 256, groundColor);
     this.add(ground);
+
+    if (lava) {
+      this.lava = lava.map(({ position, width, depth }) => {
+        const lava = new Lava({ width, depth, sfx });
+        lava.position.copy(position);
+        this.add(lava);
+        return lava;
+      });
+    }
 
     const spawn = Math.floor(Math.random() * elevators.length);
     elevators = elevators.map(({ position, rotation }, i) => {
@@ -264,6 +280,13 @@ class Gameplay extends Group {
         }
         this.physics.addMesh(this.projectiles, 1, { isSleeping: true });
         this.add(this.projectiles);
+
+        if (this.lava) {
+          this.lava.forEach((lava) => {
+            lava.onContact = this.projectiles.destroyOnContact;
+            this.physics.addMesh(lava, 0, { isTrigger: true });
+          });
+        }
 
         this.peers = new Peers({
           onJoin: (peer) => {
@@ -513,6 +536,7 @@ class Gameplay extends Group {
       effects,
       elevators,
       explosions,
+      lava,
       peers,
       physics,
       platforms,
@@ -523,10 +547,21 @@ class Gameplay extends Group {
     } = this;
     birds.animate(animation);
     clouds.animate(animation);
-    if (effects) {
-      effects.list.forEach((effect) => effect.animate(animation));
-    }
+    effects.list.forEach((effect) => effect.animate(animation));
     explosions.forEach((explosion) => explosion.animate(animation));
+    if (lava) {
+      lava.forEach((lava) => {
+        lava.animate(animation);
+        if (lava.burnsAtPoint(player.head.position)) {
+          effects.burning.trigger();
+          player.controllers.forEach((controller) => {
+            if (controller.hand) {
+              controller.pulse(0.4, 10);
+            }
+          });
+        }
+      });
+    }
     if (peers) {
       peers.animate(animation);
     }
@@ -627,9 +662,7 @@ class Gameplay extends Group {
     } = this;
     ammo.reload();
     player.climbing.reset();
-    if (effects) {
-      effects.list.forEach((effect) => effect.reset());
-    }
+    effects.list.forEach((effect) => effect.reset());
     const elevator = elevators[Math.floor(Math.random() * elevators.length)];
     player.teleport(elevator.localToWorld(
       (new Vector3((Math.random() - 0.5) * 4, 0, (Math.random() - 0.5) * 4))
@@ -671,16 +704,27 @@ class Gameplay extends Group {
     projectiles.playSound(position);
   }
 
+  resumeAudio() {
+    const { lava } = this;
+    if (lava) {
+      lava.forEach((lava) => lava.resumeAudio());
+    }
+  }
+
   onUnload() {
     const {
       ammo,
       birds,
+      lava,
       peers,
       platforms,
       pickups,
     } = this;
     ammo.counter.dispose();
     birds.dispose();
+    if (lava) {
+      lava.forEach((lava) => lava.stopAudio());
+    }
     peers.disconnect();
     if (platforms) {
       platforms.dispose();

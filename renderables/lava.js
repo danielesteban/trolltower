@@ -1,4 +1,5 @@
 import {
+  Box3,
   DataTexture,
   Mesh,
   NearestFilter,
@@ -10,6 +11,7 @@ import {
   UniformsUtils,
   UnsignedByteType,
   UVMapping,
+  Vector3,
 } from '../core/three.js';
 
 class Lava extends Mesh {
@@ -17,7 +19,7 @@ class Lava extends Mesh {
     Lava.geometry = new PlaneBufferGeometry(1, 1);
     Lava.geometry.deleteAttribute('normal');
     Lava.geometry.rotateX(Math.PI * -0.5);
-    Lava.geometry.translate(0, 0.5, 0);
+    Lava.geometry.translate(0, 0.25, 0);
   }
 
   static setupMaterial() {
@@ -71,17 +73,6 @@ class Lava extends Mesh {
         ),
       fog: true,
     });
-    Lava.material.map = texture;
-  }
-
-  static scaleTexture(width, depth) {
-    if (!Lava.material) {
-      Lava.setupMaterial();
-    }
-    const { material } = Lava;
-    material.map.repeat.set(width / 32, depth / 32);
-    material.map.updateMatrix();
-    material.uniforms.uvTransform.value.copy(material.map.matrix);
   }
 
   constructor({ width, depth, sfx }) {
@@ -93,26 +84,45 @@ class Lava extends Mesh {
     }
     super(
       Lava.geometry,
-      Lava.material
+      Lava.material.clone()
     );
+    this.auxBox = new Box3();
+    this.material.map = this.material.uniforms.map.value;
+    this.material.map.repeat.set(width / 32, depth / 32);
+    this.material.map.updateMatrix();
+    this.material.uniforms.uvTransform.value.copy(this.material.map.matrix);
     this.physics = {
       shape: 'box',
       width,
-      height: 1,
+      height: 0.5,
       depth,
     };
-    Lava.scaleTexture(width, depth);
+    this.burningBounds = new Box3(
+      new Vector3(width * -0.5, 0, depth * -0.5),
+      new Vector3(width * 0.5, 3, depth * 0.5)
+    );
     this.scale.set(width, 1, depth);
     sfx.load('sounds/lava.ogg')
       .then((sound) => {
         sound.setLoop(true);
-        sound.setRefDistance(6);
+        sound.setRefDistance(2);
         this.sound = sound;
         this.add(sound);
         if (sound.context.state === 'running') {
           sound.play();
         }
       });
+  }
+
+  animate({ time }) {
+    const { material } = this;
+    material.uniforms.step.value = time;
+  }
+
+  burnsAtPoint(point) {
+    const { auxBox, burningBounds, matrixWorld } = this;
+    auxBox.copy(burningBounds).applyMatrix4(matrixWorld);
+    return auxBox.containsPoint(point);
   }
 
   resumeAudio() {
@@ -127,10 +137,6 @@ class Lava extends Mesh {
     if (sound && sound.isPlaying) {
       sound.stop();
     }
-  }
-
-  static animate({ time }) {
-    Lava.material.uniforms.step.value = time;
   }
 }
 
