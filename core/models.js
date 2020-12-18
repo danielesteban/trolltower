@@ -105,6 +105,8 @@ class Models {
                 (position[1] + size[1] * 0.5) * scale,
                 (position[2] + size[2] * 0.5) * scale
               );
+              mesh.matrixAutoUpdate = false;
+              mesh.updateMatrix();
               return mesh;
             });
             cache.promises.forEach((resolve) => resolve(cache.physics.map((box) => box.clone())));
