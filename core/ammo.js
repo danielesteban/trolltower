@@ -612,6 +612,24 @@ async function AmmoPhysics() {
 
   }
 
+  function getContactFromA( contactPoint ) {
+    const normal = contactPoint.get_m_normalWorldOnB();
+    const position = contactPoint.getPositionWorldOnA();
+    return {
+      normal: { x: normal.x() * -1, y: normal.y() * -1, z: normal.z() * -1 },
+      position: { x: position.x(), y: position.y(), z: position.z() },
+    };
+  }
+
+  function getContactFromB( contactPoint ) {
+    const normal = contactPoint.get_m_normalWorldOnB();
+    const position = contactPoint.getPositionWorldOnB();
+    return {
+      normal: { x: normal.x(), y: normal.y(), z: normal.z() },
+      position: { x: position.x(), y: position.y(), z: position.z() },
+    };
+  }
+
   let lastTime = 0;
 
   function step() {
@@ -727,56 +745,62 @@ async function AmmoPhysics() {
       const bodyA = Ammo.castObject( contactManifold.getBody0(), Ammo.btRigidBody );
       const bodyB = Ammo.castObject( contactManifold.getBody1(), Ammo.btRigidBody );
       
-      if (
-        (bodyA.flags && bodyA.flags.isTrigger)
-        || (bodyB.flags && bodyB.flags.isTrigger)
-      ) {
+      const bodyAIsTrigger = bodyA.flags && bodyA.flags.isTrigger;
+      const bodyBIsTrigger = bodyB.flags && bodyB.flags.isTrigger;
+
+      if (bodyAIsTrigger || bodyBIsTrigger) {
 
         let body;
         let trigger;
+        let getContact;
 
-        if (bodyA.flags && bodyA.flags.isTrigger) {
+        if (bodyAIsTrigger) {
 
           body = bodyB;
           trigger = bodyA;
+          getContact = getContactFromA;
 
-        } else if (bodyB.flags && bodyB.flags.isTrigger) {
+        } else {
 
           body = bodyA;
           trigger = bodyB;
+          getContact = getContactFromB;
 
         }
 
-        if (trigger) {
+        let contact = false;
 
-          let contact = false;
+        for ( let j = 0, jl = contactManifold.getNumContacts(); j < jl; j ++ ) {
 
-          for ( let j = 0, jl = contactManifold.getNumContacts(); j < jl; j ++ ) {
+          const contactPoint = contactManifold.getContactPoint( j );
 
-            const contactPoint = contactManifold.getContactPoint( j );
+          const distance = contactPoint.getDistance();
+          const impulse = contactPoint.getAppliedImpulse();
 
-            if ( contactPoint.getDistance() < 0 ) {
-
-              const position = contactPoint.getPositionWorldOnB();
-              contact = { x: position.x(), y: position.y(), z: position.z() };
-
-              break;
-            
-            }
-      
+          if (
+            distance < 0
+            && (!contact || contact.impulse < impulse)
+          ) {
+            contact = {
+              distance,
+              impulse,
+              point: contactPoint,
+            };
           }
+    
+        }
 
-          if (contact) {
+        if (contact) {
 
-            trigger.mesh.onContact({
-              trigger: trigger.index,
-              mesh: body.mesh,
-              index: body.index,
-              point: contact,
-              time,
-            });
-
-          }
+          trigger.mesh.onContact({
+            ...getContact(contact.point),
+            distance: contact.distance,
+            impulse: contact.impulse,
+            trigger: trigger.index,
+            mesh: body.mesh,
+            index: body.index,
+            time,
+          });
 
         }
 
