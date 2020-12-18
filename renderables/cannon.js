@@ -92,16 +92,16 @@ class Cannon extends Group {
       },
       {
         shape: 'box',
-        position: new Vector3(-1.5, 0, 7),
+        position: new Vector3(-1.5, 0.5, 7),
         width: 1,
-        height: 2,
+        height: 1,
         depth: 2,
       },
       {
         shape: 'box',
-        position: new Vector3(1.5, 0, 7),
+        position: new Vector3(1.5, 0.5, 7),
         width: 1,
-        height: 2,
+        height: 1,
         depth: 2,
       },
       {
