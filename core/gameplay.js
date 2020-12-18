@@ -243,11 +243,11 @@ class Gameplay extends Group {
               });
             });
         }
-        this.projectiles.destroyOnContact = ({ mesh, index, point }) => {
+        this.projectiles.destroyOnContact = ({ mesh, index, position }) => {
           if (mesh !== this.projectiles) {
-            return;
+            return false;
           }
-          this.spawnExplosion(point, this.projectiles.getColorAt(index, color));
+          this.spawnExplosion(position, this.projectiles.getColorAt(index, color));
           this.physics.setMeshTransform(
             this.projectiles,
             vector.set(0, 0.2, -1000 - index),
@@ -255,17 +255,7 @@ class Gameplay extends Group {
             index,
             false
           );
-          if (
-            player.climbing.enabled
-            && !player.climbing.isOnAir
-            && !player.destination
-            && player.head.position.distanceTo(point) < 1
-          ) {
-            player.climbing.grip[0] = false;
-            player.climbing.grip[1] = false;
-            player.climbing.isOnAir = true;
-            player.climbing.velocity.set(0, 0, 0);
-          }
+          return true;
         };
         const matrix = new Matrix4();
         for (let i = 0; i < this.projectiles.count; i += 1) {
@@ -329,7 +319,24 @@ class Gameplay extends Group {
         this.add(this.peers);
 
         if (!spectator) {
-          player.head.physics.onContact = this.projectiles.destroyOnContact;
+          player.head.physics.onContact = (contact) => {
+            if (this.projectiles.destroyOnContact(contact)) {
+              const { impulse, normal } = contact;
+              if (
+                player.climbing.enabled
+                && !player.climbing.isOnAir
+                && !player.destination
+              ) {
+                player.climbing.grip[0] = false;
+                player.climbing.grip[1] = false;
+                player.climbing.isOnAir = true;
+                player.climbing.velocity
+                  .copy(normal).normalize().negate()
+                  .multiplyScalar(impulse * 0.5);
+                player.climbing.velocity.y = impulse * 0.1;
+              }
+            }
+          };
           this.physics.addMesh(player.head.physics, 0, { isKinematic: true, isTrigger: true });
 
           player.controllers.forEach((controller) => {
