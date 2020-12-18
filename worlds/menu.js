@@ -25,33 +25,27 @@ class Menu extends Group {
         foreground: '#fff',
         fontSize: 28,
       },
-      Pit: {
-        name: 'The Lava Pit',
-        background: '#550011',
-        foreground: '#fff',
-        fontSize: 28,
-      },
       Tower: {
         name: 'The Tower',
         background: '#114466',
         foreground: '#fff',
       },
       Well: {
-        name: 'The Well',
-        background: '#112233',
+        name: 'The Well v2',
+        background: '#550011',
         foreground: '#fff',
+        fontSize: 28,
       },
     };
 
     this.elevators = [
       'Tower',
       'Well',
-      'Pit',
       'Brittle',
     ].map((world, i) => {
       const elevator = new Elevator({ models, sfx });
       elevator.world = world;
-      elevator.position.set(7.75, 0, -4.5 + i * 3);
+      elevator.position.set(7.75, 0, -3 + i * 3);
       elevator.rotation.y = Math.PI * -0.5;
       elevator.scale.setScalar(0.25);
       elevator.display = new Display(worlds[world]);

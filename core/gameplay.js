@@ -39,7 +39,7 @@ class Gameplay extends Group {
     platforms = false,
     pickups = false,
     rocketOrigin,
-    rocketRotation = Math.PI,
+    rocketRotation = 0,
     terrainPhysics = false,
   }) {
     super();

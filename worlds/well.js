@@ -10,48 +10,46 @@ class Well extends Gameplay {
       spectator,
       climbables: 'models/wellPhysics.json',
       elevators: [
-        { position: new Vector3(13.25, 33.5, 0), rotation: Math.PI * -0.5 },
-        { position: new Vector3(-13.25, 33.5, 0), rotation: Math.PI * 0.5 },
+        { position: new Vector3(19.25, 3, 0), rotation: Math.PI * -0.5 },
+        { position: new Vector3(-19.25, 3, 0), rotation: Math.PI * 0.5 },
       ],
       lava: [
-        { position: new Vector3(0, 0.25, 0), width: 32, depth: 32 },
+        { position: new Vector3(0, 0.25, 0), width: 36, depth: 36 },
       ],
       platforms: {
-        instances: [...Array(8)].map((v, i) => {
-          const angle = ((Math.PI * 2) / 8) * i;
-          const dist = 4;
-          const origin = new Vector3(
-            Math.cos(angle) * dist,
-            10.05,
-            Math.sin(angle) * dist
-          );
+        instances: [...Array(18)].map((v, i) => {
+          const j = i > 8 ? i + 2 : i;
           return {
-            origin,
-            direction: origin.clone().sub(new Vector3(0, 6, 0)).normalize().multiplyScalar(9),
-            speed: i % 2 === 0 ? 0.5 : 0.75,
+            origin: new Vector3(
+              -14.25 + j * 1.5,
+              6 + Math.sin(j * 4) * 0.1,
+              6 * (j % 2 === 0 ? 1 : -1)
+            ),
+            direction: (new Vector3(0, 0, 12)).multiplyScalar(j % 2 === 0 ? -1 : 1),
+            speed: 0.5,
           };
         }),
         model: 'models/platform.glb',
       },
       pickups: {
-        instances: [...Array(8)].map((v, i) => {
-          const angle = i * Math.PI * 0.5;
-          const dist = 11.5;
+        instances: [...Array(6)].map((v, i) => {
+          const angle = (i % 3) * Math.PI * 0.5;
+          const dist = 15;
           return new Vector3(
             Math.cos(angle) * dist,
-            Math.floor(i / 4) === 0 ? 27.5 : 14.5,
+            26.5,
             Math.sin(angle) * dist
           );
         }),
         model: 'models/barrel.glb',
       },
-      rocketOrigin: new Vector3(0, 7.25, 0),
+      rocketOrigin: new Vector3(0, 25.75, -19),
     });
 
     const { ambient, models } = scene;
     ambient.set('sounds/forest.ogg');
-    scene.background = new Color(0x0A0A11);
-    scene.fog = new FogExp2(scene.background.getHex(), 0.02);
+    scene.background = new Color(0x220011);
+    scene.fog = new FogExp2(scene.background.getHex(), 0.025);
     models.load('models/well.glb')
       .then((model) => {
         model.scale.setScalar(0.5);
