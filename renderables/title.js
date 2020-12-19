@@ -27,7 +27,7 @@ class Title extends Mesh {
     ctx.fillText('A MULTIPLAYER CLIMBING GAME', renderer.width * 0.5, renderer.height * 0.53);
     ctx.fillStyle = '#999';
     ctx.font = '700 25px monospace';
-    ctx.fillText('v0.2.7 - dani@gatunes © 2020', renderer.width * 0.5, renderer.height * 0.83);
+    ctx.fillText('v0.2.8 - dani@gatunes © 2020', renderer.width * 0.5, renderer.height * 0.83);
     ctx.fillText('textures by greenpixel', renderer.width * 0.5, renderer.height * 0.89);
     ctx.fillText('made with three.js', renderer.width * 0.5, renderer.height * 0.95);
     const texture = new CanvasTexture(renderer);
