@@ -30,7 +30,7 @@ class UI extends Mesh {
     styles = {
       background: 'rgba(0, 0, 0, .2)',
       color: '#fff',
-      font: '700 16px monospace',
+      font: '700 14px monospace',
       textAlign: 'center',
       textBaseline: 'middle',
       ...styles,
@@ -108,6 +108,7 @@ class UI extends Mesh {
       font,
       textAlign,
       textBaseline,
+      textOffset,
       isDisabled,
       isVisible,
     }) => {
@@ -131,7 +132,7 @@ class UI extends Mesh {
         ctx.fillText(
           label,
           width * 0.5,
-          height * 0.55
+          height * 0.5 + (textOffset || 1)
         );
       }
       ctx.restore();

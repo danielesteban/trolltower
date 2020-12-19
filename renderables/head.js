@@ -124,10 +124,12 @@ class Head extends Mesh {
     image.onload = () => {
       let opaque;
       if (editable) {
-        this.renderer = document.createElement('canvas');
+        if (!this.renderer || !this.context) {
+          this.renderer = document.createElement('canvas');
+          this.context = this.renderer.getContext('2d');
+        }
         this.renderer.width = image.width;
         this.renderer.height = image.height;
-        this.context = this.renderer.getContext('2d');
         this.context.imageSmoothingEnabled = false;
         this.context.drawImage(image, 0, 0);
         opaque = new CanvasTexture(this.renderer);

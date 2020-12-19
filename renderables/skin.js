@@ -9,10 +9,6 @@ class Skin extends Group {
   }) {
     super();
 
-    const save = () => (
-      onSave(head.renderer.toDataURL())
-    );
-
     const head = new Head();
     head.onPointer = ({ buttons, uv }) => {
       if (buttons.primaryDown) {
@@ -34,6 +30,69 @@ class Skin extends Group {
     head.setLayer('transparent');
     this.add(head);
 
+    const history = {
+      current: texture,
+      past: [],
+      future: [],
+      buttons: [
+        {
+          x: 14,
+          y: 54,
+          width: 46,
+          height: 32,
+          label: '←',
+          textOffset: -1,
+          isDisabled: true,
+          onPointer: () => history.undo(),
+        },
+        {
+          x: 68,
+          y: 54,
+          width: 46,
+          height: 32,
+          label: '→',
+          textOffset: -1,
+          isDisabled: true,
+          onPointer: () => history.redo(),
+        },
+      ],
+      push(texture) {
+        this.future.length = 0;
+        this.past.push(this.current);
+        if (this.past.length > 20) {
+          this.past.shift();
+        }
+        this.current = texture;
+        this.buttons[0].isDisabled = !this.past.length;
+        this.buttons[1].isDisabled = true;
+        layers.draw();
+      },
+      undo() {
+        this.future.unshift(this.current);
+        this.current = this.past.pop();
+        this.buttons[0].isDisabled = !this.past.length;
+        this.buttons[1].isDisabled = false;
+        layers.draw();
+        head.updateTexture(this.current, true);
+        onSave(texture);
+      },
+      redo() {
+        this.past.push(this.current);
+        this.current = this.future.shift();
+        this.buttons[0].isDisabled = false;
+        this.buttons[1].isDisabled = !this.future.length;
+        layers.draw();
+        head.updateTexture(this.current, true);
+        onSave(texture);
+      },
+    };
+
+    const save = () => {
+      const texture = head.renderer.toDataURL();
+      history.push(texture);
+      onSave(texture);
+    };
+
     const setLayer = (layer) => {
       head.setLayer(layer);
       layers.buttons[layer === 'transparent' ? 0 : 1].background = '#393';
@@ -46,19 +105,20 @@ class Skin extends Group {
           x: 14,
           y: 8,
           background: '#393',
-          width: 100,
+          width: 46,
           height: 32,
           label: 'HAIR',
           onPointer: () => setLayer('transparent'),
         },
         {
-          x: 14,
-          y: 48,
-          width: 100,
+          x: 68,
+          y: 8,
+          width: 46,
           height: 32,
           label: 'SKIN',
           onPointer: () => setLayer('opaque'),
         },
+        ...history.buttons,
         {
           x: 14,
           y: 96,
