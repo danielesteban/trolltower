@@ -13,9 +13,10 @@ class Display extends Mesh {
   }
 
   constructor({
-    background,
+    background = '#333',
     fontSize = 32,
-    foreground,
+    foreground = '#eee',
+    value = 'Loading...',
   }) {
     if (!Display.geometry) {
       Display.setupGeometry();
@@ -43,7 +44,7 @@ class Display extends Mesh {
     ctx.font = `700 ${fontSize}px monospace`;
     this.colors = { background, foreground };
     this.renderer = renderer;
-    this.value = 'Loading...';
+    this.value = value;
     this.update();
   }
 
