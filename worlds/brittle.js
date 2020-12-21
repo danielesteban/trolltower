@@ -104,4 +104,11 @@ class Brittle extends Gameplay {
   }
 }
 
+Brittle.display = {
+  name: 'Brittle Hills',
+  background: '#005511',
+  foreground: '#fff',
+  fontSize: 28,
+};
+
 export default Brittle;

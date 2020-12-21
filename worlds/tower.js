@@ -184,4 +184,10 @@ class Tower extends Gameplay {
   }
 }
 
+Tower.display = {
+  name: 'The Tower',
+  background: '#114466',
+  foreground: '#fff',
+};
+
 export default Tower;
