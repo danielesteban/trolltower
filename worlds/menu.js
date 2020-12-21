@@ -280,11 +280,15 @@ class Menu extends Group {
     const {
       elevators,
       peers,
+      platforms,
       skin,
       updateElevatorsInterval,
     } = this;
     elevators.forEach((elevator) => elevator.display.dispose());
     peers.disconnect();
+    if (platforms) {
+      platforms.dispose();
+    }
     skin.dispose();
     clearInterval(updateElevatorsInterval);
   }
