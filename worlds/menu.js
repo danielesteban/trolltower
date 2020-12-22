@@ -42,7 +42,7 @@ class Menu extends Group {
         const elevator = new Elevator({ models, sfx });
         elevator.world = world;
         elevator.position.set(
-          13.75 + Math.floor(i / 2) * 3.5,
+          14.75 + Math.floor(i / 2) * 3.5,
           Math.floor(i / 2) * 4,
           -5 + j * 3 + (i % 2 === 1 ? 7 : 0)
         );
