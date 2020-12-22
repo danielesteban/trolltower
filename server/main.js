@@ -1,20 +1,25 @@
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const express = require('express');
 const expressWS = require('express-ws');
 const helmet = require('helmet');
 const nocache = require('nocache');
 const Room = require('./room');
+const Sponsors = require('./sponsors');
 const Stats = require('./stats');
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : false;
 const allowedRooms = process.env.ALLOWED_ROOMS ? process.env.ALLOWED_ROOMS.split(',') : false;
 
 const server = express();
-server.use(helmet());
+server.use(helmet({
+  contentSecurityPolicy: false,
+}));
 expressWS(server, null, { clientTracking: false });
 
 const rooms = new Map();
 const stats = process.env.STATS_STORAGE ? new Stats(process.env.STATS_STORAGE) : false;
+const sponsors = process.env.SPONSORS_STORAGE ? new Sponsors(process.env.SPONSORS_STORAGE) : false;
 
 server.ws('/:room', (client, req) => {
   if (allowedOrigins && allowedOrigins.indexOf(req.headers.origin) === -1) {
@@ -76,6 +81,24 @@ server.get('/peers', cors({ origin: allowedOrigins || true }), nocache(), (req, 
   });
   res.json(peers);
 });
+
+if (sponsors) {
+  // sponsors.populate();
+  server.get('/sponsors', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
+    sponsors.list(req, res)
+  ));
+  server.options('/sponsor', cors({ origin: allowedOrigins || true }));
+  server.put('/sponsor', cors({ origin: allowedOrigins || true }), nocache(), bodyParser.json(), (req, res) => (
+    sponsors.update(req, res)
+  ));
+  server.get('/sponsor/login', (req, res) => (
+    sponsors.login(req, res, allowedOrigins)
+  ));
+  server.options('/sponsor/session', cors({ origin: allowedOrigins || true }));
+  server.get('/sponsor/session', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
+    sponsors.refreshSession(req, res)
+  ));
+}
 
 if (stats) {
   server.get('/stats', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (

@@ -7,6 +7,8 @@ import Sign from '../renderables/sign.js';
 import Skin from '../renderables/skin.js';
 import Elevator from '../renderables/elevator.js';
 import Platforms from '../renderables/platforms.js';
+import PrivateServer from '../renderables/privateServer.js';
+import Sponsors from '../renderables/sponsors.js';
 import Title from '../renderables/title.js';
 
 class Menu extends Group {
@@ -18,6 +20,7 @@ class Menu extends Group {
     this.player = player;
 
     this.add(new Controls());
+    this.add(new PrivateServer());
     this.add(new Title());
 
     this.elevators = [
@@ -58,6 +61,22 @@ class Menu extends Group {
       }
       return elevators;
     }, []);
+
+    {
+      const elevator = new Elevator({ models, sfx });
+      elevator.position.set(
+        -8.25,
+        0,
+        -5
+      );
+      elevator.rotation.y = Math.PI * 0.5;
+      elevator.scale.setScalar(0.25);
+      elevator.add(new Sign());
+      elevator.updateMatrixWorld();
+      translocables.push(elevator.translocables);
+      this.add(elevator);
+      this.elevators.push(elevator);
+    }
 
     const origin = new Vector3(0, 0.5, 0);
     if (offset) {
@@ -160,6 +179,14 @@ class Menu extends Group {
     this.add(skin);
     this.skin = skin;
 
+    const sponsors = new Sponsors({
+      player,
+      server: 'https://rooms.trolltower.app',
+    });
+    pointables.push(sponsors.pointables);
+    this.add(sponsors);
+    this.sponsors = sponsors;
+
     models.load('models/menu.glb')
       .then((model) => {
         model.scale.setScalar(0.5);
@@ -195,10 +222,11 @@ class Menu extends Group {
       models.load('models/platform.glb'),
     ])
       .then(([/* physics */, { children: [{ children: [model] }] }]) => {
+        const floors = ((this.elevators.length - 1) / 4);
         const origin = new Vector3(10, 2.4, 0);
         const direction = new Vector3(
-          (this.elevators.length / 4) * 3.5 - 2,
-          (this.elevators.length / 4) * 4 - 2,
+          floors * 3.5 - 2,
+          floors * 4 - 2,
           0
         );
         this.platforms = new Platforms({
@@ -282,14 +310,20 @@ class Menu extends Group {
       peers,
       platforms,
       skin,
+      sponsors,
       updateElevatorsInterval,
     } = this;
-    elevators.forEach((elevator) => elevator.display.dispose());
+    elevators.forEach((elevator) => {
+      if (elevator.display) {
+        elevator.display.dispose();
+      }
+    });
     peers.disconnect();
     if (platforms) {
       platforms.dispose();
     }
     skin.dispose();
+    sponsors.dispose();
     clearInterval(updateElevatorsInterval);
   }
 }
