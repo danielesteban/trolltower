@@ -83,7 +83,6 @@ server.get('/peers', cors({ origin: allowedOrigins || true }), nocache(), (req, 
 });
 
 if (sponsors) {
-  // sponsors.populate();
   server.get('/sponsors', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
     sponsors.list(req, res)
   ));

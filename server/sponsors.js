@@ -8,18 +8,16 @@ if (process.env.NODE_ENV === 'production' && sessionSecret === 'superunsecuresec
   console.warn('\nSecurity warning:\nYou must provide a random SESSION_SECRET.\n');
 }
 
-if (!process.env.GITHUB_ACCESS_TOKEN) {
-  console.warn('\nYou must provide a GITHUB_ACCESS_TOKEN.\n');
-  process.exit(1);
-}
-
-if (!process.env.GITHUB_CLIENT_SECRET) {
-  console.warn('\nYou must provide a GITHUB_CLIENT_SECRET.\n');
-  process.exit(1);
-}
-
 class Sponsors {
   constructor(storage) {
+    if (!process.env.GITHUB_ACCESS_TOKEN) {
+      console.warn('\nYou must provide a GITHUB_ACCESS_TOKEN.\n');
+      process.exit(1);
+    }
+    if (!process.env.GITHUB_CLIENT_SECRET) {
+      console.warn('\nYou must provide a GITHUB_CLIENT_SECRET.\n');
+      process.exit(1);
+    }
     const db = new Sequelize({
       dialect: 'sqlite',
       logging: false,
@@ -247,7 +245,7 @@ class Sponsors {
       .catch(() => (false));
   }
 
-  populate() {
+  populate(skins) {
     const { octokit, users } = this;
     const query = `query ($owner: String!, $after: String) { 
       user (login: $owner) {
@@ -267,6 +265,7 @@ class Sponsors {
         }
       }
     }`;
+    let skin = 0;
     const populateSponsors = (user, after) => (
       octokit
         .graphql(query, {
@@ -285,10 +284,12 @@ class Sponsors {
                     if (user) {
                       return user;
                     }
+                    skin = (skin + 1) % skins.length;
                     return users
                       .create({
                         login,
                         name: login,
+                        ...(skins ? { skin: skins[skin] } : {}),
                       });
                   })
                   .then((user) => {
