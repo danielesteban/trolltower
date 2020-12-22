@@ -7,6 +7,7 @@ import UI from './ui.js';
 
 class Sponsors extends Group {
   constructor({
+    github,
     player,
     server,
     onSessionUpdate,
@@ -48,6 +49,7 @@ class Sponsors extends Group {
     document.getElementById('sponsorClose').onclick = () => this.closeDialogs();
     document.getElementById('sponsorUpdateName').onclick = () => this.updateName();
     document.getElementById('sponsorUpdateSkin').onclick = () => this.updateSkin();
+    this.github = github;
     this.player = player;
     this.pointables = [cta];
     this.server = server;
@@ -110,13 +112,13 @@ class Sponsors extends Group {
   }
 
   login() {
-    const { server } = this;
+    const { github, server } = this;
     const w = 512;
     const h = 512;
     const left = (window.screen.width / 2) - w / 2;
     const top = (window.screen.height / 2) - h / 2;
     const win = window.open(
-      'https://github.com/login/oauth/authorize?client_id=d5d1174014edb2667522',
+      `https://github.com/login/oauth/authorize?client_id=${github}`,
       'login',
       `width=${w},height=${h},top=${top},left=${left}`
     );

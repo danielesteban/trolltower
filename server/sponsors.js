@@ -14,6 +14,10 @@ class Sponsors {
       console.warn('\nYou must provide a GITHUB_ACCESS_TOKEN.\n');
       process.exit(1);
     }
+    if (!process.env.GITHUB_CLIENT_ID) {
+      console.warn('\nYou must provide a GITHUB_CLIENT_ID.\n');
+      process.exit(1);
+    }
     if (!process.env.GITHUB_CLIENT_SECRET) {
       console.warn('\nYou must provide a GITHUB_CLIENT_SECRET.\n');
       process.exit(1);
@@ -44,7 +48,7 @@ class Sponsors {
     });
     db.sync();
     this.auth = createOAuthAppAuth({
-      clientId: 'd5d1174014edb2667522',
+      clientId: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
     });
     this.octokit = new Octokit({
