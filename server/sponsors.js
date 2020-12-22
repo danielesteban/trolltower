@@ -281,6 +281,39 @@ class Sponsors {
       .catch(() => res.status(422).end());
   }
 
+  updateServer(req, res, allowedRooms) {
+    const { codeGenerator, servers } = this;
+    this.checkSession(req)
+      .then((user) => {
+        if (!user) {
+          throw new Error();
+        }
+        return servers
+          .findOne({ where: { user: user.id } })
+          .then((server) => {
+            if (!server) {
+              throw new Error();
+            }
+            let { code, name, world } = req.body;
+            code = `${code || ''}` === 'true';
+            name = `${name || ''}`;
+            world = `${world || ''}`;
+            if (code) {
+              server.code = codeGenerator();
+            }
+            if (name) {
+              server.name = name;
+            }
+            if (world && allowedRooms.includes(world)) {
+              server.world = world;
+            }
+            return server.save();
+          })
+      })
+      .then(() => res.status(200).end())
+      .catch(() => res.status(422).end());
+  }
+
   updateStatus(user) {
     const { octokit } = this;
     const query = `query ($owner: String!, $after: String) { 
