@@ -98,7 +98,8 @@ class Sponsors extends Group {
   }
 
   dispose() {
-    const { heads } = this;
+    const { cta, heads } = this;
+    cta.dispose();
     this.closeDialogs();
     if (heads) {
       heads.forEach((head) => {

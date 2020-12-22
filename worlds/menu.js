@@ -7,7 +7,7 @@ import Sign from '../renderables/sign.js';
 import Skin from '../renderables/skin.js';
 import Elevator from '../renderables/elevator.js';
 import Platforms from '../renderables/platforms.js';
-import PrivateServer from '../renderables/privateServer.js';
+import PrivateServers from '../renderables/privateServers.js';
 import Sponsors from '../renderables/sponsors.js';
 import Title from '../renderables/title.js';
 
@@ -20,7 +20,6 @@ class Menu extends Group {
     this.player = player;
 
     this.add(new Controls());
-    this.add(new PrivateServer());
     this.add(new Title());
 
     this.elevators = [
@@ -71,7 +70,6 @@ class Menu extends Group {
       );
       elevator.rotation.y = Math.PI * 0.5;
       elevator.scale.setScalar(0.25);
-      elevator.add(new Sign());
       elevator.updateMatrixWorld();
       translocables.push(elevator.translocables);
       this.add(elevator);
@@ -186,6 +184,11 @@ class Menu extends Group {
     pointables.push(sponsors.pointables);
     this.add(sponsors);
     this.sponsors = sponsors;
+
+    const privateServers = new PrivateServers();
+    pointables.push(privateServers.pointables);
+    this.add(privateServers);
+    this.privateServers = privateServers;
 
     models.load('models/menu.glb')
       .then((model) => {
@@ -315,6 +318,7 @@ class Menu extends Group {
       elevators,
       peers,
       platforms,
+      privateServers,
       skin,
       sponsors,
       updateElevatorsInterval,
@@ -328,6 +332,7 @@ class Menu extends Group {
     if (platforms) {
       platforms.dispose();
     }
+    privateServers.dispose();
     skin.dispose();
     sponsors.dispose();
     clearInterval(updateElevatorsInterval);
