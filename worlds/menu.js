@@ -248,6 +248,8 @@ class Menu extends Group {
         this.add(this.platforms);
         this.physics.addMesh(this.platforms, 0, { isClimbable: true, isKinematic: true });
       });
+
+    setTimeout(() => scene.syncTimeOffset('https://rooms.trolltower.app/'), 0);
   }
 
   onAnimationTick(animation) {
