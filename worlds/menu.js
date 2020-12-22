@@ -198,7 +198,7 @@ class Menu extends Group {
       });
 
     scene.getPhysics()
-      .then(([physics]) => {
+      .then((physics) => {
         this.physics = physics;
         doors.forEach((door) => {
           this.physics.addMesh(door, 5);
