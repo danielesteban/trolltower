@@ -8,13 +8,13 @@ import {
 
 class Controls extends Mesh {
   static setupGeometry() {
-    Controls.geometry = new PlaneBufferGeometry(5, 3.5);
+    Controls.geometry = new PlaneBufferGeometry(4, 3.5);
     Controls.geometry.deleteAttribute('normal');
   }
 
   static setupMaterial() {
     const renderer = document.createElement('canvas');
-    renderer.width = 1000;
+    renderer.width = 800;
     renderer.height = 700;
     const ctx = renderer.getContext('2d');
     ctx.textAlign = 'center';
@@ -22,7 +22,7 @@ class Controls extends Mesh {
     ctx.fillStyle = '#fff';
     ctx.font = '700 50px monospace';
     ctx.fillText('CONTROLS', renderer.width * 0.5, renderer.height * 0.15);
-    ctx.font = '700 50px monospace';
+    ctx.font = '700 45px monospace';
     ctx.fillText('RIGHT JOYSTICK: Teleport', renderer.width * 0.5, renderer.height * 0.365);
     ctx.fillText('GRIP: Climb/Jump', renderer.width * 0.5, renderer.height * 0.505);
     ctx.fillText('LEFT JOYSTICK: Rotate', renderer.width * 0.5, renderer.height * 0.645);
@@ -45,7 +45,7 @@ class Controls extends Mesh {
       Controls.geometry,
       Controls.material
     );
-    this.position.set(-7.999, 2.75, 0);
+    this.position.set(-7.999, 2.75, 5);
     this.rotation.y = Math.PI * 0.5;
   }
 }

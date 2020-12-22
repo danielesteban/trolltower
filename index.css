@@ -8,8 +8,120 @@ body {
   font-family: monospace;
 }
 
+button, a.button {
+  box-sizing: border-box;
+  background: #333;
+  color: #fff;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border: 0;
+  outline: 0;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button.primary, a.button.primary {
+  background: #393;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
 canvas {
   vertical-align: middle;
+}
+
+input[type="email"], input[type="password"], input[type="text"], select {
+  display: inline-block;
+  vertical-align: middle;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 0.5rem;
+  outline: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.dialog {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, .5);
+}
+
+.dialog.open {
+  display: block;
+}
+
+.dialog > div {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #111;
+  border: 1px solid #000;
+  border-radius: 4px;
+  width: 400px;
+}
+
+.dialog > div > div {
+  padding: 1rem;
+}
+
+.dialog h3 {
+  margin: 0 0 1rem;
+}
+
+.dialog .close {
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  color: #999;
+  cursor: pointer;
+}
+
+.dialog .cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog .cta > a {
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 0.5rem 1.5rem;
+}
+
+.dialog .error {
+  color: #933;
+}
+
+.dialog .input {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.dialog .input > label, .dialog .input > input, .dialog .input > select {
+  margin-right: 0.5rem;
+}
+
+.dialog .alternative {
+  display: flex;
+  align-items: center;
+  background: #222;
+}
+
+.dialog .alternative > button {
+  margin-left: auto;
 }
 
 #discord {
