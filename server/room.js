@@ -1,11 +1,19 @@
 const { v4: uuid } = require('uuid');
 
 class Room {
-  constructor({ id, instance, stats }) {
+  constructor({
+    id,
+    instance,
+    isPrivate,
+    stats,
+  }) {
     this.clients = [];
     this.id = id;
     this.instance = instance;
-    this.stats = stats;
+    this.isPrivate = isPrivate;
+    if (!isPrivate) {
+      this.stats = stats;
+    }
   }
 
   onClose(client) {

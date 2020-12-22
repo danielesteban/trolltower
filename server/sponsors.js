@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { Octokit } = require('@octokit/core');
 const { createOAuthAppAuth } = require('@octokit/auth-oauth-app');
 const Sequelize = require('sequelize');
+const { default: ShortUniqueId } = require('short-unique-id');
 
 const sessionSecret = process.env.SESSION_SECRET || 'superunsecuresecret';
 if (process.env.NODE_ENV === 'production' && sessionSecret === 'superunsecuresecret') {
@@ -46,10 +47,37 @@ class Sponsors {
         defaultValue: 0,
       },
     });
+    this.servers = db.define('servers', {
+      user: {
+        allowNull: false,
+        type: Sequelize.NUMBER,
+        unique: true,
+      },
+      code: {
+        allowNull: false,
+        type: Sequelize.STRING,
+        unique: true,
+      },
+      name: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      world: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+    });
     db.sync();
     this.auth = createOAuthAppAuth({
       clientId: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    });
+    this.codeGenerator = new ShortUniqueId({
+      dictionary: [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'A', 'B', 'C', 'D', 'E', 'F',
+      ],
+      length: 6,
     });
     this.octokit = new Octokit({
       auth: process.env.GITHUB_ACCESS_TOKEN,
@@ -94,6 +122,41 @@ class Sponsors {
         return Sponsors.issueToken(user);
       })
       .then((session) => res.json(session));
+  }
+
+  getServer(req, res) {
+    const { codeGenerator, servers } = this;
+    this.checkSession(req)
+      .then((user) => {
+        if (!user) {
+          return false;
+        }
+        return servers
+          .findOne({ where: { user: user.id } })
+          .then((server) => {
+            if (server) {
+              return server;
+            }
+            return servers
+              .create({
+                user: user.id,
+                code: codeGenerator(),
+                name: user.name,
+                world: 'Tower',
+              });
+          })
+      })
+      .then((server) => res.json({
+        code: server.code,
+        name: server.name,
+        world: server.world,
+      }));
+  }
+
+  getServerByCode(code) {
+    const { servers } = this;
+    return servers
+      .findOne({ where: { code } });
   }
 
   list(req, res) {

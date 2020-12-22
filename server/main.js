@@ -21,61 +21,79 @@ const rooms = new Map();
 const stats = process.env.STATS_STORAGE ? new Stats(process.env.STATS_STORAGE) : false;
 const sponsors = process.env.SPONSORS_STORAGE ? new Sponsors(process.env.SPONSORS_STORAGE) : false;
 
-server.ws('/:room', (client, req) => {
-  if (allowedOrigins && allowedOrigins.indexOf(req.headers.origin) === -1) {
-    client.send(JSON.stringify({
-      type: 'ERROR',
-      data: 'Origin not allowed.',
-    }), () => {});
-    client.terminate();
-    return;
-  }
-  let id;
-  let instance;
-  let { room: key } = req.params;
-  if (key === 'Menu') {
-    id = 'Menu';
-    let i = 1;
-    while (!instance) {
-      const room = rooms.get(`${id}-${i}`);
-      if (!room || room.clients.length < room.constructor.maxClients) {
-        instance = i;
-      }
-      i += 1;
+server.ws('/:room', (client, req) => (
+  (new Promise((resolve, reject) => {
+    if (allowedOrigins && !allowedOrigins.includes(req.headers.origin)) {
+      return reject('Origin not allowed.');
     }
-  } else {
+
+    let { room: key } = req.params;
+    if (key === 'Menu') {
+      const id = 'Menu';
+      let instance;
+      let i = 1;
+      while (!instance) {
+        const room = rooms.get(`${id}-${i}`);
+        if (!room || room.clients.length < room.constructor.maxClients) {
+          instance = i;
+        }
+        i += 1;
+      }
+      return resolve({ id, instance });
+    }
+
     [id, instance] = `${key}`.split('-');
     id = `${id}`;
     instance = parseInt(`${instance}`, 10);
-    if (
-      Number.isNaN(instance)
-      || instance <= 0
-      || (
-        allowedRooms
-        && allowedRooms.indexOf(id) === -1
-      )
-    ) {
+    if (Number.isNaN(instance) || instance <= 0) {
+      return reject('Room not allowed.');
+    }
+    if (!allowedRooms || allowedRooms.includes(id)) {
+      return resolve({ id, instance });
+    }
+    if (allowedRooms && (!sponsors || instance !== 1)) {
+      return reject('Room not allowed.');
+    }
+    return sponsors.getServerByCode(id)
+      .then((server) => {
+        if (!server) {
+          return reject('Room not allowed.');
+        }
+        resolve({ id, instance, isPrivate: true });
+      });
+  }))
+    .then(({ id, instance, isPrivate }) => {
+      const key = `${id}-${instance}`;
+      let room = rooms.get(key);
+      if (!room) {
+        room = new Room({
+          id,
+          instance,
+          isPrivate,
+          stats,
+        });
+        rooms.set(key, room);
+      }
+      room.onClient(client);
+    })
+    .catch((error) => {
       client.send(JSON.stringify({
         type: 'ERROR',
-        data: 'Room not allowed.',
+        data: error,
       }), () => {});
       client.terminate();
-      return;
-    }
-  }
-  key = `${id}-${instance}`;
-  let room = rooms.get(key);
-  if (!room) {
-    room = new Room({ id, instance, stats });
-    rooms.set(key, room);
-  }
-  room.onClient(client);
-});
+    })
+));
 
 server.get('/peers', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => {
   const peers = {};
-  rooms.forEach(({ id, instance, clients }) => {
-    if (clients.length) {
+  rooms.forEach(({
+    clients,
+    id,
+    instance,
+    isPrivate,
+  }) => {
+    if (!isPrivate && clients.length) {
       peers[`${id}-${instance}`] = clients.length;
     }
   });
@@ -96,6 +114,10 @@ if (sponsors) {
   server.options('/sponsor/session', cors({ origin: allowedOrigins || true }));
   server.get('/sponsor/session', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
     sponsors.refreshSession(req, res)
+  ));
+  server.options('/sponsor/server', cors({ origin: allowedOrigins || true }));
+  server.get('/sponsor/server', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
+    sponsors.getServer(req, res)
   ));
 }
 

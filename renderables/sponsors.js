@@ -194,6 +194,13 @@ class Sponsors extends Group {
       localStorage.setItem('trolltower::session', session);
       // HACKITY-HACK!!!
       document.getElementById('sponsorName').value = profile.name;
+      this.request({
+        endpoint: 'sponsor/server',
+      })
+        .then((server) => {
+          // HACKITY-HACK!!!
+          document.getElementById('sponsorServerCode').innerText = server.code;
+        });
     } else {
       delete this.profile;
       localStorage.removeItem('trolltower::session', session);
