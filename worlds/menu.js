@@ -178,8 +178,11 @@ class Menu extends Group {
     this.skin = skin;
 
     const sponsors = new Sponsors({
-      player,
+      github: 'd5d1174014edb2667522',
       server: 'https://rooms.trolltower.app',
+      // github: '8c8a63376427a8d39e0c',
+      // server: 'http://localhost:3000',
+      player,
     });
     pointables.push(sponsors.pointables);
     this.add(sponsors);
