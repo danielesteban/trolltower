@@ -7,7 +7,6 @@ import Sign from '../renderables/sign.js';
 import Skin from '../renderables/skin.js';
 import Elevator from '../renderables/elevator.js';
 import Platforms from '../renderables/platforms.js';
-import PrivateServers from '../renderables/privateServers.js';
 import Sponsors from '../renderables/sponsors.js';
 import Title from '../renderables/title.js';
 
@@ -60,21 +59,6 @@ class Menu extends Group {
       }
       return elevators;
     }, []);
-
-    {
-      const elevator = new Elevator({ models, sfx });
-      elevator.position.set(
-        -8.25,
-        0,
-        -5
-      );
-      elevator.rotation.y = Math.PI * 0.5;
-      elevator.scale.setScalar(0.25);
-      elevator.updateMatrixWorld();
-      translocables.push(elevator.translocables);
-      this.add(elevator);
-      this.elevators.push(elevator);
-    }
 
     const origin = new Vector3(0, 0.5, 0);
     if (offset) {
@@ -184,14 +168,33 @@ class Menu extends Group {
       // server: 'http://localhost:3000',
       player,
     });
+    {
+      const elevator = new Elevator({ models, sfx });
+      elevator.position.set(
+        -8.25,
+        0,
+        -5
+      );
+      elevator.rotation.y = Math.PI * 0.5;
+      elevator.scale.setScalar(0.25);
+      elevator.updateMatrixWorld();
+      translocables.push(elevator.translocables);
+      this.add(elevator);
+      this.elevators.push(elevator);
+      sponsors.privateServers.setupElevator = (server) => {
+        elevator.isOpen = true;
+        elevator.onClose = () => (
+          scene.load(server.world, {
+            offset: elevator.getOffset(player),
+            room: `${server.code}-1`,
+            spectator: !player.xr.enabled || !player.xr.isPresenting,
+          })
+        );
+      };
+    }
     pointables.push(sponsors.pointables);
     this.add(sponsors);
     this.sponsors = sponsors;
-
-    const privateServers = new PrivateServers();
-    pointables.push(privateServers.pointables);
-    this.add(privateServers);
-    this.privateServers = privateServers;
 
     models.load('models/menu.glb')
       .then((model) => {
@@ -321,7 +324,6 @@ class Menu extends Group {
       elevators,
       peers,
       platforms,
-      privateServers,
       skin,
       sponsors,
       updateElevatorsInterval,
@@ -335,7 +337,6 @@ class Menu extends Group {
     if (platforms) {
       platforms.dispose();
     }
-    privateServers.dispose();
     skin.dispose();
     sponsors.dispose();
     clearInterval(updateElevatorsInterval);

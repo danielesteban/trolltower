@@ -1,6 +1,8 @@
 import {
   Group,
 } from '../core/three.js';
+import PrivateServersTitle from './privateServersTitle.js';
+import PrivateServers from './privateServers.js';
 import SponsorsTitle from './sponsorsTitle.js';
 import Head from './head.js';
 import UI from './ui.js';
@@ -13,7 +15,8 @@ class Sponsors extends Group {
     onSessionUpdate,
   }) {
     super();
-    this.position.set(-8.5, 2.5, 0);
+    this.position.set(-7.5, 0, 0);
+    this.add(new PrivateServersTitle());
     this.add(new SponsorsTitle());
     const cta = new UI({
       width: 1,
@@ -33,10 +36,33 @@ class Sponsors extends Group {
         },
       ],
     });
-    cta.position.set(0.6, -0.6, 0);
-    cta.rotation.set(Math.PI * -0.25, Math.PI * 0.5, 0, 'YXZ');
+    cta.position.set(-0.4, 1.9, 0);
+    cta.rotation.set(Math.PI * -0.2, Math.PI * 0.5, 0, 'YXZ');
     this.add(cta);
     this.cta = cta;
+    const privateServers = new PrivateServers({
+      addServer: (code) => (
+        this.request({
+          endpoint: `sponsor/server/${code}`,
+          session: false,
+        })
+          .then((server) => {
+            if (server) {
+              const { servers } = privateServers.pages.list;
+              if (servers.length === 3) {
+                servers.pop();
+              }
+              servers.unshift(server);
+              localStorage.setItem('trolltower::privateServers', JSON.stringify(servers.map(({ code }) => (code))));
+            }
+            privateServers.setPage('list');
+          })
+      ),
+    });
+    privateServers.position.set(0.1, 1.75, -5.75);
+    privateServers.rotation.set(Math.PI * -0.1, Math.PI * 0.5, 0, 'YXZ');
+    this.add(privateServers);
+    this.privateServers = privateServers;
     this.dialogs = {
       login: document.getElementById('login'),
       sponsor: document.getElementById('sponsor'),
@@ -51,9 +77,41 @@ class Sponsors extends Group {
     document.getElementById('sponsorUpdateSkin').onclick = () => this.updateSkin();
     this.github = github;
     this.player = player;
-    this.pointables = [cta];
+    this.pointables = [cta, privateServers];
     this.server = server;
     this.onSessionUpdate = onSessionUpdate;
+    {
+      let knownServers = localStorage.getItem('trolltower::privateServers');
+      if (knownServers) {
+        try {
+          knownServers = JSON.parse(knownServers);
+        } catch (e) {
+          knownServers = false;
+        }
+        if (knownServers) {
+          Promise.all(knownServers.map((code) => (
+            this.request({
+              endpoint: `sponsor/server/${code}`,
+              session: false,
+            })
+          )))
+            .then((servers) => (
+              servers.reduce((servers, server) => {
+                if (server) {
+                  servers.push(server);
+                }
+                return servers;
+              }, [])
+            ))
+            .then((servers) => {
+              privateServers.pages.list.servers.push(...servers);
+              if (privateServers.page === 'list') {
+                privateServers.setPage('list');
+              }
+            });
+        }
+      }
+    }
     const session = localStorage.getItem('trolltower::session');
     if (session) {
       this.request({
@@ -70,7 +128,7 @@ class Sponsors extends Group {
         // TODO: Paginate/Animate this so it works for more than 4 heads
         this.heads = sponsors.slice(0, 4).map(({ name, skin }, i) => {
           const head = new Head();
-          head.position.set(0, 0, 1.5 - i);
+          head.position.set(-1, 2.5, 1.5 - i);
           head.rotation.set(0, Math.PI * -0.5, 0);
           if (!skin) {
             skin = Head.generateTexture().toDataURL();
@@ -100,15 +158,16 @@ class Sponsors extends Group {
   }
 
   dispose() {
-    const { cta, heads } = this;
+    const { cta, heads, privateServers } = this;
     cta.dispose();
-    this.closeDialogs();
     if (heads) {
       heads.forEach((head) => {
         head.dispose();
         head.label.dispose();
       });
     }
+    privateServers.dispose();
+    this.closeDialogs();
   }
 
   login() {
@@ -194,6 +253,13 @@ class Sponsors extends Group {
       localStorage.setItem('trolltower::session', session);
       // HACKITY-HACK!!!
       document.getElementById('sponsorName').value = profile.name;
+      this.request({
+        endpoint: 'sponsor/server',
+      })
+        .then((server) => {
+          // HACKITY-HACK!!!
+          document.getElementById('sponsorServerCode').innerText = server.code;
+        });
     } else {
       delete this.profile;
       localStorage.removeItem('trolltower::session', session);

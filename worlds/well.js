@@ -2,9 +2,9 @@ import { Color, FogExp2, Vector3 } from '../core/three.js';
 import Gameplay from '../core/gameplay.js';
 
 class Well extends Gameplay {
-  constructor(scene, { instance, offset, spectator }) {
+  constructor(scene, { instance, offset, room, spectator }) {
     super({
-      room: `Well-${instance}`,
+      room: room || `Well-${instance}`,
       scene,
       offset,
       spectator,
