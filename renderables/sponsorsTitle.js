@@ -39,7 +39,7 @@ class SponsorsTitle extends Mesh {
       SponsorsTitle.geometry,
       SponsorsTitle.material
     );
-    this.position.set(0.501, 1.5, 0);
+    this.position.set(-0.499, 4, 0);
     this.rotation.y = Math.PI * 0.5;
   }
 }

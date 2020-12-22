@@ -117,6 +117,9 @@ if (sponsors) {
   ));
   server.options('/sponsor/server', cors({ origin: allowedOrigins || true }));
   server.get('/sponsor/server', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
+    sponsors.getUserServer(req, res)
+  ));
+  server.get('/sponsor/server/:code', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
     sponsors.getServer(req, res)
   ));
 }

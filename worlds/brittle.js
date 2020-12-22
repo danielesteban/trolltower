@@ -3,9 +3,9 @@ import Gameplay from '../core/gameplay.js';
 import Rain from '../renderables/rain.js';
 
 class Brittle extends Gameplay {
-  constructor(scene, { instance, offset, spectator }) {
+  constructor(scene, { instance, offset, room, spectator }) {
     super({
-      room: `Brittle-${instance}`,
+      room: room || `Brittle-${instance}`,
       scene,
       offset,
       spectator,

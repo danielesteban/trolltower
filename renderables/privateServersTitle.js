@@ -41,7 +41,7 @@ class PrivateServersTitle extends Mesh {
       PrivateServersTitle.geometry,
       PrivateServersTitle.material
     );
-    this.position.set(-0.499, 3.75, 0);
+    this.position.set(-0.499, 3.75, -5);
     this.rotation.y = Math.PI * 0.5;
   }
 }

@@ -10,7 +10,7 @@ import Ocean from '../renderables/ocean.js';
 import Rain from '../renderables/rain.js';
 
 class Tower extends Gameplay {
-  constructor(scene, { instance, offset, spectator }) {
+  constructor(scene, { instance, offset, room, spectator }) {
     const elevators = [];
     const boats = [
       new Vector3(0, 3.5, -29.5),
@@ -30,7 +30,7 @@ class Tower extends Gameplay {
     });
 
     super({
-      room: `Tower-${instance}`,
+      room: room || `Tower-${instance}`,
       scene,
       offset,
       spectator,

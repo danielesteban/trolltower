@@ -125,6 +125,23 @@ class Sponsors {
   }
 
   getServer(req, res) {
+    const { servers } = this;
+    let { code } = req.params;
+    code = `${code || ''}`;
+    if (!code) {
+      return res.json(false);
+    }
+    return this.getServerByCode(code)
+      .then((server) => (
+        res.json(server ? {
+          code: server.code,
+          name: server.name,
+          world: server.world,
+        } : false)
+      ));
+  }
+
+  getUserServer(req, res) {
     const { codeGenerator, servers } = this;
     this.checkSession(req)
       .then((user) => {
@@ -156,7 +173,8 @@ class Sponsors {
   getServerByCode(code) {
     const { servers } = this;
     return servers
-      .findOne({ where: { code } });
+      .findOne({ where: { code } })
+      .catch(() => res.json(false));
   }
 
   list(req, res) {
