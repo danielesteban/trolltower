@@ -197,16 +197,9 @@ class Menu extends Group {
         this.add(model);
       });
 
-    Promise.all([
-      scene.getPhysics(),
-      models.physics('models/menuPhysics.json', 0.5),
-    ])
-      .then(([physics, boxes]) => {
+    scene.getPhysics()
+      .then(([physics]) => {
         this.physics = physics;
-        boxes.forEach((box) => {
-          translocables.push(box);
-          this.physics.addMesh(box, 0, { isClimbable: true });
-        });
         doors.forEach((door) => {
           this.physics.addMesh(door, 5);
           this.physics.addConstraint(door, door.hinge);
@@ -214,6 +207,17 @@ class Menu extends Group {
         this.physics.addMesh(player.head.physics, 0, { isKinematic: true });
         player.controllers.forEach((controller) => {
           this.physics.addMesh(controller.physics, 0, { isKinematic: true });
+        });
+      });
+
+    Promise.all([
+      scene.getPhysics(),
+      models.physics('models/menuPhysics.json', 0.5),
+    ])
+      .then(([/* physics */, boxes]) => {
+        boxes.forEach((box) => {
+          translocables.push(box);
+          this.physics.addMesh(box, 0, { isClimbable: true });
         });
       });
 
