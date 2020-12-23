@@ -294,7 +294,7 @@ class Skin extends Group {
   dispose() {
     const { children } = this;
     children.forEach((child) => (
-      child.dispose()
+      child.dispose && child.dispose()
     ));
   }
 }
