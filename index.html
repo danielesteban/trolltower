@@ -87,15 +87,23 @@
           </div>
           <div class="spacer"></div>
           <label>Private Server:</label>
-          <div id="sponsorServerCode" class="code"></div>
+          <div class="code">
+            <div id="sponsorServerCode"></div>
+            <button id="sponsorUpdateServerCode">↺</button>
+          </div>
+          <div class="input">
+            <label>Name:&nbsp;</label>
+            <input id="sponsorServerName" type="text" />
+            <button id="sponsorUpdateServerName">Update</button>
+          </div>
           <div class="input">
             <label>World:</label>
-            <select disabled>
+            <select id="sponsorServerWorld" >
               <option>Tower</option>
               <option>Well</option>
               <option>Brittle</option>
             </select>
-            <button disabled>Update</button>
+            <button id="sponsorUpdateServerWorld">Update</button>
           </div>
         </div>
         <div class="alternative">

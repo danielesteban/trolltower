@@ -196,6 +196,9 @@ class Menu extends Group {
     this.add(sponsors);
     this.sponsors = sponsors;
 
+    player.rotate(Math.PI * 0.5);
+    player.teleport(new Vector3(-5.5, 0, 0));
+
     models.load('models/menu.glb')
       .then((model) => {
         model.scale.setScalar(0.5);

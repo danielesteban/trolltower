@@ -93,14 +93,25 @@ input[type="email"]:disabled, input[type="password"]:disabled, input[type="text"
 }
 
 .dialog .code {
+  background: #222;
+  padding: 0.5rem 0;
+  margin: 0.5rem 0;
+  border-radius: 2px;
+  position: relative;
+}
+
+.dialog .code > div {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  background: #222;
-  padding: 0.5rem 0;
-  margin: 0.5rem 0;
   user-select: text;
+}
+
+.dialog .code > button {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
 }
 
 .dialog .cta {

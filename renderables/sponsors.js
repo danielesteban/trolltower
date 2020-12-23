@@ -7,6 +7,11 @@ import SponsorsTitle from './sponsorsTitle.js';
 import Head from './head.js';
 import UI from './ui.js';
 
+// THIS CODE IS A BIT TERRIBLE
+// BUT THIS IS JUST SORT OF A PROOF OF CONCEPT FOR NOW
+// I will definitely clean this up when the sponsors
+// functionality is more defined
+
 class Sponsors extends Group {
   constructor({
     github,
@@ -75,6 +80,9 @@ class Sponsors extends Group {
     document.getElementById('sponsorClose').onclick = () => this.closeDialogs();
     document.getElementById('sponsorUpdateName').onclick = () => this.updateName();
     document.getElementById('sponsorUpdateSkin').onclick = () => this.updateSkin();
+    document.getElementById('sponsorUpdateServerCode').onclick = () => this.updateServerCode();
+    document.getElementById('sponsorUpdateServerName').onclick = () => this.updateServerName();
+    document.getElementById('sponsorUpdateServerWorld').onclick = () => this.updateServerWorld();
     this.github = github;
     this.player = player;
     this.pointables = [cta, privateServers];
@@ -259,6 +267,8 @@ class Sponsors extends Group {
         .then((server) => {
           // HACKITY-HACK!!!
           document.getElementById('sponsorServerCode').innerText = server.code;
+          document.getElementById('sponsorServerName').value = server.name;
+          document.getElementById('sponsorServerWorld').value = server.world;
         });
     } else {
       delete this.profile;
@@ -301,6 +311,43 @@ class Sponsors extends Group {
     this.request({
       body: { skin: player.skin },
       endpoint: 'sponsor',
+      method: 'PUT',
+    });
+  }
+  
+  updateServerCode() {
+    this.request({
+      body: { code: true },
+      endpoint: 'sponsor/server',
+      method: 'PUT',
+    })
+      .then(() => (
+        this.request({
+          endpoint: 'sponsor/server',
+        })
+      ))
+      .then((server) => {
+        // HACKITY-HACK!!!
+        document.getElementById('sponsorServerCode').innerText = server.code;
+      });
+  }
+
+  updateServerName() {
+    // HACKITY-HACK!!!
+    const name = document.getElementById('sponsorServerName').value;
+    this.request({
+      body: { name },
+      endpoint: 'sponsor/server',
+      method: 'PUT',
+    });
+  }
+
+  updateServerWorld() {
+    // HACKITY-HACK!!!
+    const world = document.getElementById('sponsorServerWorld').value;
+    this.request({
+      body: { world },
+      endpoint: 'sponsor/server',
       method: 'PUT',
     });
   }
