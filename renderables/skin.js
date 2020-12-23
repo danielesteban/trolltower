@@ -1,5 +1,6 @@
 import { Color, Group } from '../core/three.js';
 import Head from './head.js';
+import SkinTitle from './skinTitle.js';
 import UI from './ui.js';
 
 class Skin extends Group {
@@ -8,6 +9,8 @@ class Skin extends Group {
     texture,
   }) {
     super();
+
+    this.add(new SkinTitle());
 
     const head = new Head();
     head.onPointer = ({ buttons, uv }) => {
