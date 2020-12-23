@@ -1,5 +1,6 @@
 import {
   Group,
+  Vector3,
 } from '../core/three.js';
 import PrivateServersTitle from './privateServersTitle.js';
 import PrivateServers from './privateServers.js';
@@ -14,6 +15,7 @@ import UI from './ui.js';
 
 class Sponsors extends Group {
   constructor({
+    anchor,
     elevator,
     github,
     player,
@@ -24,6 +26,7 @@ class Sponsors extends Group {
     this.position.set(-7.5, 0, 0);
     this.add(new PrivateServersTitle());
     this.add(new SponsorsTitle());
+    this.anchor = anchor;
     const cta = new UI({
       width: 1,
       height: 0.25,
@@ -148,14 +151,15 @@ class Sponsors extends Group {
           },
         ],
       });
-      label.position.set(0, -0.3, -0.3);
-      label.rotation.set(Math.PI * 0.25, Math.PI, 0);
+      label.position.copy(head.position).add(new Vector3(0.3, -0.3, 0));
+      label.rotation.set(Math.PI * -0.25, Math.PI * 0.5, 0, 'YXZ');
       label.update = (name) => {
         head.label.labels[0].text = name;
         head.label.draw();
       };
+      label.visible = false;
       head.label = label;
-      head.add(label);
+      this.add(label);
       this.add(head);
       return head;
     });
@@ -176,7 +180,15 @@ class Sponsors extends Group {
     this.closeDialogs();
   }
 
-  animate({ delta }) {
+  animate({ delta, time }) {
+    const { anchor, heads } = this;
+    heads.forEach((head, i) => {
+      if (head.visible) {
+        head.position.y = 2.5 + Math.sin((time + i) * 4) * 0.01;
+        head.lookAt(anchor.position);
+        head.rotateY(Math.PI);
+      }
+    });
     this.headsTimer -= delta;
     if (this.headsTimer > 0) {
       return;
@@ -187,10 +199,11 @@ class Sponsors extends Group {
       session: false,
     })
       .then(({ page, pages, sponsors }) => {
-        this.heads.forEach((head, i) => {
+        heads.forEach((head, i) => {
           const sponsor = sponsors[i];
           if (!sponsor) {
             head.visible = false;
+            head.label.visible = false;
             return;
           }
           if (!sponsor.skin) {
@@ -198,6 +211,7 @@ class Sponsors extends Group {
           }
           head.updateTexture(sponsor.skin);
           head.label.update(sponsor.name);
+          head.label.visible = true;
           head.visible = true;
         });
         this.headsPage = (page + 1) % pages;

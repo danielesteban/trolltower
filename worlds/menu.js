@@ -192,6 +192,7 @@ class Menu extends Group {
       return elevator;
     })();
     const sponsors = new Sponsors({
+      anchor: this.player.head,
       elevator: privateServersElevator,
       github: 'd5d1174014edb2667522',
       server: 'https://rooms.trolltower.app',
