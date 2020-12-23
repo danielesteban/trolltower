@@ -130,41 +130,37 @@ class Sponsors extends Group {
       })
         .then((session) => this.setSession(session));
     }
-    this.request({
-      endpoint: 'sponsors',
-      session: false,
-    })
-      .then(({ sponsors }) => {
-        // TODO: Paginate/Animate this so it works for more than 4 heads
-        this.heads = sponsors.map(({ name, skin }, i) => {
-          const head = new Head();
-          head.position.set(-1, 2.5, 1.5 - i);
-          head.rotation.set(0, Math.PI * -0.5, 0);
-          if (!skin) {
-            skin = Head.generateTexture().toDataURL();
-          }
-          head.updateTexture(skin);
-          const label = new UI({
-            width: 0.9,
-            height: 0.15,
-            textureWidth: 192,
-            textureHeight: 32,
-            labels: [
-              {
-                x: 96,
-                y: 16,
-                text: name,
-              },
-            ],
-          });
-          label.position.set(0, -0.3, -0.3);
-          label.rotation.set(Math.PI * 0.25, Math.PI, 0);
-          head.label = label;
-          head.add(label);
-          this.add(head);
-          return head;
-        });
+    this.heads = [...Array(4)].map((v, i) => {
+      const head = new Head();
+      head.position.set(-1, 2.5, 1.5 - i);
+      head.rotation.set(0, Math.PI * -0.5, 0);
+      head.visible = false;
+      const label = new UI({
+        width: 0.9,
+        height: 0.15,
+        textureWidth: 192,
+        textureHeight: 32,
+        labels: [
+          {
+            x: 96,
+            y: 16,
+            text: '',
+          },
+        ],
       });
+      label.position.set(0, -0.3, -0.3);
+      label.rotation.set(Math.PI * 0.25, Math.PI, 0);
+      label.update = (name) => {
+        head.label.labels[0].text = name;
+        head.label.draw();
+      };
+      head.label = label;
+      head.add(label);
+      this.add(head);
+      return head;
+    });
+    this.headsTimer = 0;
+    this.headsPage = 0;
   }
 
   dispose() {
@@ -178,6 +174,34 @@ class Sponsors extends Group {
     }
     privateServers.dispose();
     this.closeDialogs();
+  }
+
+  animate({ delta }) {
+    this.headsTimer -= delta;
+    if (this.headsTimer > 0) {
+      return;
+    }
+    this.headsTimer = 10;
+    this.request({
+      endpoint: `sponsors?page=${this.headsPage}`,
+      session: false,
+    })
+      .then(({ page, pages, sponsors }) => {
+        this.heads.forEach((head, i) => {
+          const sponsor = sponsors[i];
+          if (!sponsor) {
+            head.visible = false;
+            return;
+          }
+          if (!sponsor.skin) {
+            sponsor.skin = Head.generateTexture().toDataURL();
+          }
+          head.updateTexture(sponsor.skin);
+          head.label.update(sponsor.name);
+          head.visible = true;
+        });
+        this.headsPage = (page + 1) % pages;
+      });
   }
 
   login() {
@@ -316,7 +340,7 @@ class Sponsors extends Group {
       method: 'PUT',
     });
   }
-  
+
   updateServerCode() {
     this.request({
       body: { code: true },
