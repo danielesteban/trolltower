@@ -125,7 +125,6 @@ class Sponsors {
   }
 
   getServer(req, res) {
-    const { servers } = this;
     let { code } = req.params;
     code = `${code || ''}`;
     if (!code) {
@@ -161,7 +160,7 @@ class Sponsors {
                 name: user.name,
                 world: 'Tower',
               });
-          })
+          });
       })
       .then((server) => res.json({
         code: server.code,
@@ -174,7 +173,7 @@ class Sponsors {
     const { servers } = this;
     return servers
       .findOne({ where: { code } })
-      .catch(() => res.json(false));
+      .catch(() => false);
   }
 
   list(req, res) {
@@ -324,7 +323,7 @@ class Sponsors {
               server.world = world;
             }
             return server.save();
-          })
+          });
       })
       .then(() => res.status(200).end())
       .catch(() => res.status(422).end());
