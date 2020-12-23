@@ -144,4 +144,5 @@ server.get('/sync', cors({ origin: allowedOrigins || true }), nocache(), (req, r
 ));
 
 server.use((req, res) => res.status(404).end());
+server.use((err, req, res, next) => res.status(500).end());
 server.listen(process.env.PORT || 3000);
