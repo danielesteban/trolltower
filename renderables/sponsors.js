@@ -20,7 +20,6 @@ class Sponsors extends Group {
     github,
     player,
     server,
-    onSessionUpdate,
   }) {
     super();
     this.position.set(-7.5, 0, 0);
@@ -45,6 +44,10 @@ class Sponsors extends Group {
         },
       ],
     });
+    cta.update = (label) => {
+      cta.buttons[0].label = label;
+      cta.draw();
+    };
     cta.position.set(-0.4, 1.9, 0);
     cta.rotation.set(Math.PI * -0.2, Math.PI * 0.5, 0, 'YXZ');
     this.add(cta);
@@ -92,7 +95,6 @@ class Sponsors extends Group {
     this.player = player;
     this.pointables = [cta, privateServers];
     this.server = server;
-    this.onSessionUpdate = onSessionUpdate;
     {
       let knownServers = localStorage.getItem('trolltower::privateServers');
       if (knownServers) {
@@ -117,7 +119,8 @@ class Sponsors extends Group {
               }, [])
             ))
             .then((servers) => {
-              privateServers.pages.list.servers.push(...servers);
+              const { list } = privateServers.pages;
+              list.servers.push(...servers.slice(0, Math.max(3 - list.servers.length, 0)));
               if (privateServers.page === 'list') {
                 privateServers.setPage('list');
               }
@@ -293,12 +296,13 @@ class Sponsors extends Group {
   }
 
   setSession(session) {
-    const { onSessionUpdate } = this;
+    const { cta, privateServers } = this;
     this.session = session;
     if (session) {
       const { id, iat, exp, ...profile } = JSON.parse(atob(session.split('.')[1]));
       this.profile = profile;
       localStorage.setItem('trolltower::session', session);
+      cta.update(`Hi ${profile.name}!`);
       // HACKITY-HACK!!!
       document.getElementById('sponsorName').value = profile.name;
       this.request({
@@ -309,13 +313,19 @@ class Sponsors extends Group {
           document.getElementById('sponsorServerCode').innerText = server.code;
           document.getElementById('sponsorServerName').value = server.name;
           document.getElementById('sponsorServerWorld').value = server.world;
+          const { servers } = privateServers.pages.list;
+          if (!servers.find(({ code }) => (code === server.code))) {
+            if (servers.length === 3) {
+              servers.pop();
+            }
+            servers.unshift(server);
+            privateServers.setPage('list');
+          }
         });
     } else {
+      cta.update('Become a sponsor');
       delete this.profile;
       localStorage.removeItem('trolltower::session', session);
-    }
-    if (onSessionUpdate) {
-      onSessionUpdate();
     }
   }
 
