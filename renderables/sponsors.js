@@ -134,9 +134,9 @@ class Sponsors extends Group {
       endpoint: 'sponsors',
       session: false,
     })
-      .then((sponsors) => {
+      .then(({ sponsors }) => {
         // TODO: Paginate/Animate this so it works for more than 4 heads
-        this.heads = sponsors.slice(0, 4).map(({ name, skin }, i) => {
+        this.heads = sponsors.map(({ name, skin }, i) => {
           const head = new Head();
           head.position.set(-1, 2.5, 1.5 - i);
           head.rotation.set(0, Math.PI * -0.5, 0);

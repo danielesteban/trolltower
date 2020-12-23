@@ -179,25 +179,41 @@ class Sponsors {
 
   list(req, res) {
     const { users } = this;
-    users.findAll({
-      attributes: [
-        'name',
-        'skin',
-        'tier',
-      ],
+    const pageSize = 4;
+    let { page } = req.query;
+    page = Math.max(parseInt(`${page}`, 10) || 0, 0);
+    users.count({
       where: {
         tier: { [Sequelize.Op.not]: 0 },
       },
-      order: [
-        ['tier', 'DESC'],
-        ['createdAt', 'DESC'],
-      ],
-      raw: true,
     })
-      .then((sponsors) => res.json(sponsors.map((user) => ({
-        ...user,
-        skin: user.skin !== null ? user.skin : undefined,
-      }))));
+      .then((count) => (
+        users.findAll({
+          attributes: [
+            'name',
+            'skin',
+            'tier',
+          ],
+          where: {
+            tier: { [Sequelize.Op.not]: 0 },
+          },
+          order: [
+            ['tier', 'DESC'],
+            ['createdAt', 'DESC'],
+          ],
+          offset: page * pageSize,
+          limit: pageSize,
+          raw: true,
+        })
+          .then((sponsors) => res.json({
+            page,
+            pages: Math.ceil(count / pageSize),
+            sponsors: sponsors.map((user) => ({
+              ...user,
+              skin: user.skin !== null ? user.skin : undefined,
+            })),
+          }))
+      ));
   }
 
   login(req, res, allowedOrigins) {
