@@ -66,9 +66,14 @@ class Menu extends Group {
       const elevator = this.elevators.find((elevator) => (
         elevator.world && elevator.world.id === world
       ));
-      elevator.localToWorld(origin.copy(offset.position));
-      player.teleport(origin);
-      player.rotate(elevator.rotation.y - offset.rotation);
+      if (elevator) {
+        elevator.localToWorld(origin.copy(offset.position));
+        player.teleport(origin);
+        player.rotate(elevator.rotation.y - offset.rotation);
+      } else {
+        player.teleport(origin.set(-5, 0.5, -5));
+        player.rotate((Math.PI * -0.5) - offset.rotation);
+      }
     } else {
       player.rotation.y = 0;
       player.teleport(origin);
@@ -161,14 +166,7 @@ class Menu extends Group {
     this.add(skin);
     this.skin = skin;
 
-    const sponsors = new Sponsors({
-      github: 'd5d1174014edb2667522',
-      server: 'https://rooms.trolltower.app',
-      // github: '8c8a63376427a8d39e0c',
-      // server: 'http://localhost:3000',
-      player,
-    });
-    {
+    const privateServersElevator = (() => {
       const elevator = new Elevator({ models, sfx });
       elevator.position.set(
         -8.25,
@@ -178,10 +176,7 @@ class Menu extends Group {
       elevator.rotation.y = Math.PI * 0.5;
       elevator.scale.setScalar(0.25);
       elevator.updateMatrixWorld();
-      translocables.push(elevator.translocables);
-      this.add(elevator);
-      this.elevators.push(elevator);
-      sponsors.privateServers.setupElevator = (server) => {
+      elevator.setServer = (server) => {
         elevator.isOpen = true;
         elevator.onClose = () => (
           scene.load(server.world, {
@@ -191,7 +186,20 @@ class Menu extends Group {
           })
         );
       };
-    }
+      translocables.push(elevator.translocables);
+      this.add(elevator);
+      this.elevators.push(elevator);
+      return elevator;
+    })();
+    const sponsors = new Sponsors({
+      elevator: privateServersElevator,
+      github: 'd5d1174014edb2667522',
+      server: 'https://rooms.trolltower.app',
+      // github: '8c8a63376427a8d39e0c',
+      // server: 'http://localhost:3000',
+      player,
+    });
+    
     pointables.push(sponsors.pointables);
     this.add(sponsors);
     this.sponsors = sponsors;
