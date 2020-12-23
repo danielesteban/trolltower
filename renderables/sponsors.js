@@ -14,6 +14,7 @@ import UI from './ui.js';
 
 class Sponsors extends Group {
   constructor({
+    elevator,
     github,
     player,
     server,
@@ -46,6 +47,7 @@ class Sponsors extends Group {
     this.add(cta);
     this.cta = cta;
     const privateServers = new PrivateServers({
+      elevator,
       addServer: (code) => (
         this.request({
           endpoint: `sponsor/server/${code}`,

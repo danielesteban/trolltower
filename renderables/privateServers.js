@@ -2,6 +2,7 @@ import UI from './ui.js';
 
 class PrivateServers extends UI {
   constructor({
+    elevator,
     addServer,
   }) {
     super({});
@@ -14,7 +15,7 @@ class PrivateServers extends UI {
         }
       });
       this.draw();
-      this.setupElevator(server);
+      elevator.setServer(server);
     };
     this.pages = {
       check: {
