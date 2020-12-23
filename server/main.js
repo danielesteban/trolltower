@@ -27,7 +27,7 @@ server.ws('/:room', (client, req) => (
       return reject('Origin not allowed.');
     }
 
-    let { room: key } = req.params;
+    const { room: key } = req.params;
     if (key === 'Menu') {
       const id = 'Menu';
       let instance;
@@ -42,7 +42,7 @@ server.ws('/:room', (client, req) => (
       return resolve({ id, instance });
     }
 
-    [id, instance] = `${key}`.split('-');
+    let [id, instance] = `${key}`.split('-');
     id = `${id}`;
     instance = parseInt(`${instance}`, 10);
     if (Number.isNaN(instance) || instance <= 0) {
