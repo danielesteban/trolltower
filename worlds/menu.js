@@ -199,7 +199,7 @@ class Menu extends Group {
       // server: 'http://localhost:3000',
       player,
     });
-    
+
     pointables.push(sponsors.pointables);
     this.add(sponsors);
     this.sponsors = sponsors;
@@ -275,6 +275,7 @@ class Menu extends Group {
       peers,
       platforms,
       player,
+      sponsors,
     } = this;
     peers.animate(animation);
     elevators.forEach((elevator) => {
@@ -325,6 +326,7 @@ class Menu extends Group {
         });
       }
     });
+    sponsors.animate(animation);
   }
 
   onUnload() {
