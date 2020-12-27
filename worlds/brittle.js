@@ -60,7 +60,7 @@ class Brittle extends Gameplay {
       'sounds/forest.ogg',
     ]);
     scene.background = new Color(0x110A1A);
-    scene.fog = new FogExp2(scene.background.getHex(), 0.03);
+    scene.fog = new FogExp2(scene.background.getHex(), 0.02);
 
     const rain = new Rain({ anchor: this.player, heightmapScale: 0.5 });
     this.add(rain);
