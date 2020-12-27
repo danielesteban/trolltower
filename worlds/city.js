@@ -22,7 +22,7 @@ class City extends Gameplay {
       'sounds/rain.ogg',
       'sounds/city.ogg',
     ]);
-    scene.background = new Color(0x181B1B);
+    scene.background = new Color(0x180B1B);
     scene.fog = new FogExp2(scene.background.getHex(), 0.02);
 
     const rain = new Rain({ anchor: this.player, heightmapScale: 0.5 });
