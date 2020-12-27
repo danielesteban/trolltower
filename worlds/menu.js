@@ -25,7 +25,7 @@ class Menu extends Group {
       'Tower',
       'Well',
       'Brittle',
-      'Coming Soon',
+      'City',
       'Coming Soon',
       'Coming Soon',
     ].reduce((elevators, id, i) => {

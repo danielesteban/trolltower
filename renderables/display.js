@@ -14,7 +14,7 @@ class Display extends Mesh {
 
   constructor({
     background = '#333',
-    fontSize = 32,
+    fontSize = 30,
     foreground = '#eee',
     value = 'Loading...',
   }) {

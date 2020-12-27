@@ -82,7 +82,6 @@ Well.display = {
   name: 'The Well v2',
   background: '#550011',
   foreground: '#fff',
-  fontSize: 28,
 };
 
 export default Well;
