@@ -11,9 +11,11 @@ class City extends Gameplay {
       spectator,
       climbables: 'models/cityPhysics.json',
       elevators: [
-        { position: new Vector3(4.5, 10, 0.25), rotation: 0 },
+        { position: new Vector3(-13, 18, -25.25), rotation: 0 },
+        { position: new Vector3(23, 18, -24.75), rotation: 0 },
       ],
-      rocketOrigin: new Vector3(4.5, 32.25, -13),
+      rocketOrigin: new Vector3(5, 37.25, 24.5),
+      rocketRotation: Math.PI,
     });
 
     const { ambient, models } = scene;
