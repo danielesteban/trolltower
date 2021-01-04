@@ -21,6 +21,11 @@ class Stats {
     db.sync();
   }
 
+  static getDateOffset(days) {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() - days, now.getHours());
+  }
+
   onClient({ id, instance }) {
     const { clients } = this;
     return clients.create({ room: id, instance });
@@ -35,7 +40,29 @@ class Stats {
       ],
       group: ['date'],
       where: {
-        createdAt: { [Sequelize.Op.gt]: new Date(new Date() - 8 * 24 * 60 * 60 * 1000) },
+        createdAt: { [Sequelize.Op.gt]: Stats.getDateOffset(2) },
+        ...where,
+      },
+      raw: true,
+    })
+      .then((clients) => (
+        clients.reduce((clients, { date, count }) => {
+          clients[date] = count;
+          return clients;
+        }, {})
+      ));
+  }
+
+  getClientsByDay(where) {
+    const { clients } = this;
+    return clients.findAll({
+      attributes: [
+        [Sequelize.literal('strftime("%Y%m%d", "createdAt")'), 'date'],
+        [Sequelize.literal('COUNT(*)'), 'count'],
+      ],
+      group: ['date'],
+      where: {
+        createdAt: { [Sequelize.Op.gt]: Stats.getDateOffset(14) },
         ...where,
       },
       raw: true,
@@ -57,7 +84,7 @@ class Stats {
       ],
       group: ['room'],
       where: {
-        createdAt: { [Sequelize.Op.gt]: new Date(new Date() - 8 * 24 * 60 * 60 * 1000) },
+        createdAt: { [Sequelize.Op.gt]: Stats.getDateOffset(7) },
         room: { [Sequelize.Op.not]: 'Menu' },
       },
       raw: true,

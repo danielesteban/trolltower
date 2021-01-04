@@ -4,7 +4,6 @@ import {
   Matrix4,
   MeshBasicMaterial,
 } from '../core/three.js';
-import Lightmap from '../core/lightmap.js';
 
 class Bodies extends InstancedMesh {
   static setupMaterial() {

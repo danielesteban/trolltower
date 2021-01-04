@@ -131,10 +131,11 @@ if (stats) {
   server.get('/stats', cors({ origin: allowedOrigins || true }), nocache(), (req, res) => (
     Promise.all([
       stats.getClientsByHour({ room: 'Menu' }),
+      stats.getClientsByDay({ room: 'Menu' }),
       stats.getClientsByRoom(),
     ])
-      .then(([hour, room]) => (
-        res.json({ hour, room })
+      .then(([hour, day, room]) => (
+        res.json({ hour, day, room })
       ))
   ));
 }

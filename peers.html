@@ -9,9 +9,9 @@
     <div id="wrapper">
       <h5>Worlds</h5>
       <div id="peers"></div>
-      <h5>Last 48H</h5>
+      <h5>Peers/hour</h5>
       <canvas id="graphA" class="graph"></canvas>
-      <h5>Last Week</h5>
+      <h5>Peers/day</h5>
       <canvas id="graphB" class="graph"></canvas>
     </div>
     <script>
@@ -72,13 +72,13 @@
               });
             }
             [
-              { graph: dom.graphA, count: 24 * 2 },
-              { graph: dom.graphB, count: 24 * 7 },
-            ].forEach(({ graph, count }) => {
+              { graph: dom.graphA, data: stats.hour, count: 24 * 2, step: { hours: -1 } },
+              { graph: dom.graphB, data: stats.day, count: 14, step: { date: -1 } },
+            ].forEach(({ graph, data, count, step }) => {
               const { width, height } = graph;
               const ctx = graph.getContext('2d');
               ctx.clearRect(0, 0, width, height);
-              const max = Object.keys(stats.hour).reduce((max, date) => Math.max(max, stats.hour[date]), 0);
+              const max = Object.keys(data).reduce((max, date) => Math.max(max, data[date]), 0);
               const size = width / count;
               const ratio = (height - 10) / max;
               const now = new Date();
@@ -88,18 +88,20 @@
                 const month = time.getUTCMonth();
                 const date = time.getUTCDate();
                 const hours = time.getUTCHours();
-                const localHours = time.getHours();
-                const key = `${year}${month < 9 ? '0' : ''}${month + 1}${date < 10 ? '0' : ''}${date}${hours < 10 ? '0' : ''}${hours}`;
-                time = new Date(Date.UTC(year, month, date, hours - 1));
-                if (localHours === 0 || localHours === 12) {
-                  ctx.fillStyle = localHours === 0 ? '#444' : '#333';
-                  ctx.fillRect(
-                    size * i, 0,
-                    size, height
-                  );
+                const key = `${year}${month < 9 ? '0' : ''}${month + 1}${date < 10 ? '0' : ''}${date}${data === stats.hour ? `${hours < 10 ? '0' : ''}${hours}` : ''}`;
+                time = new Date(Date.UTC(year, month, date + (step.date || 0), hours + (step.hours || 0)));
+                if (data === stats.hour) {
+                  const localHours = time.getHours();
+                  if (localHours === 0 || localHours === 12) {
+                    ctx.fillStyle = localHours === 0 ? '#444' : '#333';
+                    ctx.fillRect(
+                      size * i, 0,
+                      size, height
+                    );
+                  }
                 }
-                if (stats.hour[key]) {
-                  const h = stats.hour[key] * ratio;
+                if (data[key]) {
+                  const h = data[key] * ratio;
                   ctx.fillStyle = '#393';
                   ctx.fillRect(
                     size * i, height - h,
