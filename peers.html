@@ -88,17 +88,19 @@
                 const month = time.getUTCMonth();
                 const date = time.getUTCDate();
                 const hours = time.getUTCHours();
+                const localDay = time.getDay();
+                const localHours = time.getHours();
                 const key = `${year}${month < 9 ? '0' : ''}${month + 1}${date < 10 ? '0' : ''}${date}${data === stats.hour ? `${hours < 10 ? '0' : ''}${hours}` : ''}`;
                 time = new Date(Date.UTC(year, month, date + (step.date || 0), hours + (step.hours || 0)));
-                if (data === stats.hour) {
-                  const localHours = time.getHours();
-                  if (localHours === 0 || localHours === 12) {
-                    ctx.fillStyle = localHours === 0 ? '#444' : '#333';
-                    ctx.fillRect(
-                      size * i, 0,
-                      size, height
-                    );
-                  }
+                if (
+                  (data === stats.day && localDay === 1)
+                  || (data === stats.hour && (localHours === 0 || localHours === 12))
+                ) {
+                  ctx.fillStyle = (data === stats.hour && localHours === 0) ? '#444' : '#333';
+                  ctx.fillRect(
+                    size * i, 0,
+                    size, height
+                  );
                 }
                 if (data[key]) {
                   const h = data[key] * ratio;
