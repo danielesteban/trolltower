@@ -7,6 +7,7 @@
       "hasBlending": false,
       "isGhost": false,
       "light": 0,
+      "isUntextured": true,
       "textures": {
         "bottom": "2NjY/8/Pz//Z2dn/0NDQ/9TU1P/Y2Nj/0tLS/9nZ2f/U1NT/1tbW/9DQ0P/Pz8//1NTU/9jY2P/T09P/z8/P/8/Pz////////////////////////////////////////////////////////////////////////////9jY2P/Q0ND//////+zs7P/x8fH/5ubm/+/v7//m5ub/7e3t/+np6f/w8PD/6enp//Dw8P/q6ur/7+/v///////Q0ND/2dnZ///////t7e3/7e3t/+zs7P/q6ur/7+/v/+np6f/q6ur/8PDw/+rq6v/l5eX/6+vr//Hx8f//////1NTU/9HR0f//////6Ojo/+/v7//s7Oz/8PDw/+jo6P/t7e3/5ubm/+3t7f/w8PD/7Ozs/+3t7f/p6en//////8/Pz//Q0ND//////+/v7//q6ur/5eXl/+np6f/x8fH/7u7u/+rq6v/o6Oj/5+fn/+bm5v/q6ur/6urq///////R0dH/1dXV///////l5eX/5ubm//Dw8P/r6+v/7+/v/+rq6v/x8fH/7+/v/+fn5//l5eX/5ubm//Dw8P//////09PT/9bW1v//////6urq/+Xl5f/n5+f/7u7u/+rq6v/w8PD/7Ozs/+/v7//r6+v/6Ojo/+jo6P/v7+///////9DQ0P/S0tL//////+jo6P/p6en/7e3t/+7u7v/t7e3/6urq/+zs7P/r6+v/7+/v/+bm5v/w8PD/8PDw///////T09P/09PT///////w8PD/6+vr//Dw8P/t7e3/6+vr//Dw8P/v7+//7u7u//Dw8P/p6en/8vLy/+vr6///////1tbW/9fX1///////7e3t/+fn5//v7+//5eXl/+vr6//n5+f/7e3t/+np6f/w8PD/8PDw//Dw8P/t7e3//////9nZ2f/V1dX//////+jo6P/q6ur/7+/v/+vr6//t7e3/6urq/+np6f/s7Oz/5ubm/+zs7P/n5+f/6urq///////S0tL/0NDQ///////u7u7/6urq//Dw8P/v7+//8PDw/+/v7//l5eX/7+/v/+fn5//t7e3/6enp/+jo6P//////1dXV/8/Pz///////6enp/+rq6v/o6Oj/5+fn//Ly8v/m5ub/6enp//Ly8v/p6en/6Ojo/+/v7//q6ur//////9XV1f/U1NT////////////////////////////////////////////////////////////////////////////Q0ND/0NDQ/87Ozv/Ozs7/1tbW/9bW1v/Y2Nj/1tbW/9fX1//Z2dn/0tLS/9bW1v/V1dX/z8/P/9DQ0P/V1dX/1tbW/w==",
         "side": "1NTU/9nZ2f/Pz8//0NDQ/9XV1f/X19f/0NDQ/9fX1//Z2dn/z8/P/9fX1//Q0ND/0dHR/9LS0v/T09P/1NTU/9XV1f///////////////////////////////////////////////////////////////////////////9PT0//Ozs7//////+jo6P/t7e3/7u7u/+jo6P/t7e3/7Ozs/+jo6P/v7+//5+fn//Hx8f/t7e3/8vLy///////R0dH/19fX///////o6Oj/6enp/+Xl5f/v7+//5eXl/+np6f/q6ur/8PDw/+np6f/t7e3/7Ozs//Hx8f//////1dXV/9DQ0P//////6urq/+7u7v/r6+v/5ubm/+zs7P/x8fH/6+vr/+bm5v/o6Oj/7+/v/+rq6v/s7Oz//////9nZ2f/Z2dn///////Dw8P/u7u7/8PDw/+vr6//x8fH/6Ojo/+zs7P/w8PD/8PDw/+rq6v/y8vL/6enp///////Ozs7/z8/P///////l5eX/6enp/+7u7v/l5eX/7e3t/+fn5//q6ur/8PDw/+zs7P/s7Oz/7+/v/+bm5v//////0dHR/9DQ0P//////5eXl/+np6f/n5+f/6urq/+Xl5f/s7Oz/7e3t/+vr6//p6en/6+vr/+rq6v/x8fH//////9TU1P/S0tL//////+np6f/t7e3/6Ojo/+/v7//m5ub/8fHx/+3t7f/m5ub/6+vr/+fn5//p6en/7Ozs///////Q0ND/z8/P///////w8PD/7Ozs/+jo6P/l5eX/6Ojo/+bm5v/t7e3/8vLy/+Xl5f/u7u7/7Ozs/+3t7f//////0NDQ/9bW1v//////7u7u/+/v7//x8fH/8PDw//Ly8v/r6+v/7e3t/+vr6//s7Oz/7e3t/+/v7//w8PD//////9HR0f/S0tL//////+bm5v/s7Oz/5ubm/+bm5v/v7+//8PDw/+fn5//r6+v/8vLy/+/v7//o6Oj/8fHx///////Y2Nj/19fX///////n5+f/6+vr/+7u7v/w8PD/6+vr/+vr6//r6+v/5ubm/+jo6P/n5+f/7e3t//Dw8P//////0NDQ/8/Pz///////7+/v/+zs7P/x8fH/8PDw/+zs7P/s7Oz/6Ojo/+rq6v/n5+f/5ubm/+/v7//p6en//////9DQ0P/S0tL////////////////////////////////////////////////////////////////////////////X19f/0NDQ/9PT0//Y2Nj/19fX/9LS0v/V1dX/zs7O/9XV1f/Y2Nj/0tLS/9HR0f/Pz8//z8/P/9DQ0P/R0dH/zs7O/w==",
@@ -509,9 +510,9 @@
   ],
   "lighting": {
     "ambient": {
-      "r": 0.5098039215686274,
-      "g": 0.5098039215686274,
-      "b": 0.5098039215686274
+      "r": 0.5019607843137255,
+      "g": 0.5019607843137255,
+      "b": 0.5019607843137255
     },
     "background": {
       "r": 0,
