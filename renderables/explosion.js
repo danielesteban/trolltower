@@ -15,11 +15,10 @@ class Explosion extends Mesh {
     const sphere = new IcosahedronBufferGeometry(0.5, 3);
     sphere.deleteAttribute('normal');
     sphere.deleteAttribute('uv');
-    let model = sphere.toNonIndexed();
     const scale = 1 / Explosion.chunks;
-    model.scale(scale, scale, scale);
+    sphere.scale(scale, scale, scale);
     {
-      const { count } = model.getAttribute('position');
+      const { count } = sphere.getAttribute('position');
       const color = new BufferAttribute(new Float32Array(count * 3), 3);
       let light;
       for (let i = 0; i < count; i += 1) {
@@ -28,9 +27,9 @@ class Explosion extends Mesh {
         }
         color.setXYZ(i, light, light, light);
       }
-      model.setAttribute('color', color);
+      sphere.setAttribute('color', color);
     }
-    model = BufferGeometryUtils.mergeVertices(model);
+    const model = BufferGeometryUtils.mergeVertices(sphere);
     const geometry = new InstancedBufferGeometry();
     geometry.setIndex(model.getIndex());
     geometry.setAttribute('position', model.getAttribute('position'));
