@@ -10,8 +10,7 @@ class Spheres extends Bodies {
     const sphere = new IcosahedronBufferGeometry(0.2, 3);
     sphere.deleteAttribute('normal');
     sphere.deleteAttribute('uv');
-    const geometry = sphere.toNonIndexed();
-    const { count } = geometry.getAttribute('position');
+    const { count } = sphere.getAttribute('position');
     const color = new BufferAttribute(new Float32Array(count * 3), 3);
     let light;
     for (let i = 0; i < count; i += 1) {
@@ -20,8 +19,8 @@ class Spheres extends Bodies {
       }
       color.setXYZ(i, light, light, light);
     }
-    geometry.setAttribute('color', color);
-    Spheres.geometry = BufferGeometryUtils.mergeVertices(geometry);
+    sphere.setAttribute('color', color);
+    Spheres.geometry = BufferGeometryUtils.mergeVertices(sphere);
     Spheres.geometry.physics = {
       shape: 'sphere',
       radius: sphere.parameters.radius,
