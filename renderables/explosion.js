@@ -1,6 +1,7 @@
 import {
-  BufferGeometry,
-  IcosahedronGeometry,
+  BufferAttribute,
+  BufferGeometryUtils,
+  IcosahedronBufferGeometry,
   InstancedBufferGeometry,
   InstancedBufferAttribute,
   Mesh,
@@ -11,16 +12,29 @@ import {
 
 class Explosion extends Mesh {
   static setupGeometry() {
-    const sphere = new IcosahedronGeometry(0.5, 3);
-    sphere.faces.forEach((face) => (
-      face.color.offsetHSL(0, 0, -(0.2 + Math.random() * 0.1))
-    ));
-    const model = (new BufferGeometry()).fromGeometry(sphere);
+    const sphere = new IcosahedronBufferGeometry(0.5, 3);
+    sphere.deleteAttribute('normal');
+    sphere.deleteAttribute('uv');
+    let model = sphere.toNonIndexed();
     const scale = 1 / Explosion.chunks;
     model.scale(scale, scale, scale);
+    {
+      const { count } = model.getAttribute('position');
+      const color = new BufferAttribute(new Float32Array(count * 3), 3);
+      let light;
+      for (let i = 0; i < count; i += 1) {
+        if (i % 3 === 0) {
+          light = 0.8 - Math.random() * 0.1;
+        }
+        color.setXYZ(i, light, light, light);
+      }
+      model.setAttribute('color', color);
+    }
+    model = BufferGeometryUtils.mergeVertices(model);
     const geometry = new InstancedBufferGeometry();
-    geometry.setAttribute('color', model.getAttribute('color'));
+    geometry.setIndex(model.getIndex());
     geometry.setAttribute('position', model.getAttribute('position'));
+    geometry.setAttribute('color', model.getAttribute('color'));
     const count = Explosion.chunks ** 3;
     const stride = 1 / Explosion.chunks;
     const offset = new Float32Array(count * 3);
