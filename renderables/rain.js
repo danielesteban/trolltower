@@ -1,6 +1,5 @@
 import {
-  BoxGeometry,
-  BufferGeometry,
+  BoxBufferGeometry,
   BufferGeometryUtils,
   Color,
   DynamicDrawUsage,
@@ -15,11 +14,10 @@ import {
 
 class Rain extends Mesh {
   static setupGeometry() {
-    let drop = (new BufferGeometry()).fromGeometry(
-      (new BoxGeometry(0.01, 0.5, 0.01)).translate(0, 0.25, 0)
-    );
+    let drop = new BoxBufferGeometry(0.01, 0.5, 0.01);
     drop.deleteAttribute('normal');
     drop.deleteAttribute('uv');
+    drop.translate(0, 0.25, 0);
     drop = BufferGeometryUtils.mergeVertices(drop);
     Rain.geometry = {
       index: drop.getIndex(),

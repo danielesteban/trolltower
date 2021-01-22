@@ -1,4 +1,5 @@
 import {
+  BufferAttribute,
   BufferGeometry,
   BufferGeometryUtils,
   Color,
@@ -7,26 +8,35 @@ import {
   LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
-  TorusGeometry,
+  TorusBufferGeometry,
 } from '../core/three.js';
 
 // A mesh to visualize the translocation destination and the curvecast path
 
 class Marker extends Group {
   static setupGeometry() {
-    const outer = new TorusGeometry(0.3, 0.025, 16, 32);
-    const inner = new TorusGeometry(0.15, 0.0125, 16, 24);
-    [outer, inner].forEach(({ faces }) => faces.forEach((face, i) => {
-      if (i % 2 === 1) {
-        face.color.offsetHSL(0, 0, Math.random() * -0.1);
-        faces[i - 1].color.copy(face.color);
-      }
-    }));
-    outer.merge(inner);
-    outer.rotateX(Math.PI * -0.5);
-    const geometry = (new BufferGeometry()).fromGeometry(outer);
-    geometry.deleteAttribute('normal');
-    geometry.deleteAttribute('uv');
+    const geometry = BufferGeometryUtils.mergeBufferGeometries(
+      [
+        new TorusBufferGeometry(0.3, 0.025, 16, 32),
+        new TorusBufferGeometry(0.15, 0.0125, 16, 24),
+      ].map((model) => {
+        model.deleteAttribute('normal');
+        model.deleteAttribute('uv');
+        const geometry = model.toNonIndexed();
+        const { count } = geometry.getAttribute('position');
+        const color = new BufferAttribute(new Float32Array(count * 3), 3);
+        let light;
+        for (let i = 0; i < count; i += 1) {
+          if (i % 6 === 0) {
+            light = 1 - Math.random() * 0.1;
+          }
+          color.setXYZ(i, light, light, light);
+        }
+        geometry.setAttribute('color', color);
+        return geometry;
+      })
+    );
+    geometry.rotateX(Math.PI * -0.5);
     Marker.geometry = BufferGeometryUtils.mergeVertices(geometry);
   }
 
