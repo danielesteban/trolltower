@@ -12,18 +12,18 @@
     "server": "node server/main.js"
   },
   "dependencies": {
-    "@octokit/auth-oauth-app": "^3.0.7",
-    "@octokit/core": "^3.2.4",
+    "@octokit/auth-oauth-app": "^3.0.8",
+    "@octokit/core": "^3.2.5",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-ws": "^4.0.0",
-    "helmet": "^4.3.1",
+    "helmet": "^4.4.1",
     "jsonwebtoken": "^8.5.1",
     "nocache": "^2.1.0",
-    "sequelize": "^6.3.5",
+    "sequelize": "^6.5.0",
     "short-unique-id": "^3.2.3",
-    "sqlite3": "^5.0.0",
+    "sqlite3": "^5.0.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
